@@ -1,0 +1,4 @@
+set line /dev/ttya
+set sp 38400
+set flow none
+c

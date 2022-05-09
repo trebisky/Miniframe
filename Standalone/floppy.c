@@ -1,0 +1,608 @@
+/* floppy.c
+	floppy driver for Miniframe.
+	tjt  6/4/90
+*/
+
+#define DISK_DMA_COUNT		(short *) 0xc80000	/* r/w word count */
+#define DISK_DMA_LADDR		(short *) 0xc80002	/* wo  low 16 bits */
+#define DISK_DMA_UADDR_W	(short *) 0xc80006	/* wo upper 5 bits */
+#define DISK_DMA_UADDR_R	(short *) 0xc80008	/* wo upper 5 bits */
+
+/* Now here is a strange place to hide a bit.
+ * In the slow communications status register, we have a bit
+ * that goes low whenever a floppy drive is physically connected
+ * to the the 34 pin connector, whether is is powered up, ready, or whatever.
+ */
+#define SC_STAT			(short *) 0xc30008
+#define SC_FDNP			0x01
+
+#define FD_RESET_ON		(short *) 0xc60020
+#define FD_RESET_OFF		(short *) 0xc60022
+#define HD_RESET_ON		(short *) 0xc60024
+#define HD_RESET_OFF		(short *) 0xc60026
+#define FD_MOTOR_ON		(short *) 0xc60028
+#define FD_MOTOR_OFF		(short *) 0xc6002A
+#define HD_DMA_ENABLE		(short *) 0xc6002C
+#define FD_DMA_ENABLE		(short *) 0xc6002E
+#define DISK_DMA_DISABLE	(short *) 0xc60030
+#define FD_SINGLE		(short *) 0xc60032
+#define FD_DOUBLE		(short *) 0xc60034
+#define DISK_BIU_RESET		(short *) 0xc60036
+
+/* the WD2797 FDC chip */
+#define FD_COMMAND	(short *) 0xc60010
+#define FD_STATUS	(short *) 0xc60010
+#define FD_TRACK	(short *) 0xc60012
+#define FD_SECTOR	(short *) 0xc60014
+#define FD_DATA		(short *) 0xc60016
+
+/* bits in the WD2797 status register */
+#define FD_NREADY	0x80
+#define FD_WPROT	0x40
+#define FD_HLOADED	0x20
+#define FD_SEEKERR	0x10
+#define FD_CRCERR	0x08
+#define FD_TRACK0	0x04
+#define FD_INDEX	0x02
+#define FD_BUSY		0x01
+/* these bits change for type II and III commands */
+#define FD_RTYPE	0x20		/* on read, 1 = deleted data */
+#define FD_RNF		0x10		/* record not found */
+#define FD_LDATA	0x04		/* lost data */
+#define FD_DRQ		0x02
+
+/* the 8259 interrupt controller chip */
+#define PIC_ICW		(short *) 0xc90000
+#define PIC_OCW		(short *) 0xc90002
+
+#define READ	1
+#define WRITE	2
+
+#define SINGLE	1
+#define DOUBLE	2
+
+/* Callan uses a "pseudo 8-inch format" with 77 cyl, 2 heads, 8 sectors
+ * of 512 bytes, for 1232 blocks total (616K), actually 80 cyl could be used,
+ * for a total of 640K.
+ */
+#define NTRACK	80		/* cylinders on a 720K floppy */
+#define NIOTRACK 77		/* cylinders on a 720K floppy */
+#define NSECTOR	8		/* sectors per track */
+
+#define SSIZE 512
+
+#define BUFLOC		0x20000
+#ifdef NEVER
+char localbuf[SSIZE];		/* sector buffer */
+#endif
+char *iobuf = (char *) BUFLOC;
+char *bigbuf = (char *) BUFLOC;
+
+char	*prompt();
+
+short density = DOUBLE;
+
+main()
+{
+	int nio;
+	int times;
+	int track;
+	register char *cp;
+
+	printf("Floppy test starting\n");
+
+	iobuf = (char *) BUFLOC;
+
+	for ( cp = iobuf; cp < &iobuf[SSIZE]; )
+	    *cp++ = 0xae;
+
+	printf("int is %d bytes\n",sizeof(int));
+
+	printf("io buffer is at: ");
+	hex8(iobuf);
+	putchar('\n');
+
+	fdinit();
+
+	for ( ;; ) {
+	    cp = prompt("floppy: ");
+	    if ( *cp == '\0' ) {
+		printf("status: %x\n",(*FD_STATUS)&0xff);
+		continue;
+	    }
+	    if ( *cp == 'm' )			/* m - motor on */
+		*FD_MOTOR_ON = 0;
+	    else if ( *cp == 'o' )		/* o - motor off */
+		*FD_MOTOR_OFF = 0;
+	    else if ( *cp == 'i' )		/* i - initialize */
+		fdinit();
+	    else if ( *cp == 'r' ) {		/* r - read sector */
+		sectorio(READ);
+		nio = SSIZE;
+	    } else if ( *cp == 'w' )		/* w - write sector */
+		sectorio(WRITE);
+	    else if ( *cp == 'd' )		/* d - dump sector buffer */
+		vxdmp(iobuf,nio);
+	    else if ( *cp == 'x' ) {		/* x - toggle density */
+		if ( density == SINGLE )
+		    density = DOUBLE;
+		else
+		    density = SINGLE;
+		printf("density is now: %s\n",
+			(density==SINGLE)?"SINGLE":"DOUBLE");
+	    } else if ( *cp == 's' ) {		/* s - seek */
+		++cp;
+		while ( *cp && *cp == ' ' )
+		    ++cp;
+		track = atol(cp);
+		if ( track < 0 ) track = 0;
+		if ( track > NTRACK-1 ) track = NTRACK-1;
+		fdseek(track);
+	    } else if ( *cp == 'a' ) {		/* a - seek test */
+		for ( times=0; times<1; ++times )
+		    seektest();
+	    } else if ( *cp == 'b' ) {		/* b - read test */
+		readtest();
+	    } else if ( *cp == 'c' ) {		/* c - read/write test */
+		rwtest();
+	    } else if ( *cp == 'e' ) {		/* e - read track */
+		nio = read_track(bigbuf,20000,0);	/* side 0 for now */
+		if ( nio > 0 ) {
+		    vxdmp(bigbuf,nio);
+		    printf("%d bytes read\n",nio);
+		}
+/*
+	    } else if ( *cp == 'l' ) {
+		printf("Snooping\n");
+		snoop((char *) 0x70000);
+		snoop((char *) 0x70100);
+*/
+	    } else 
+		printf(" ?\n");
+	}
+}
+
+snoop(pat)
+char *pat;
+{
+	register char *p;
+
+	for ( p = (char *) 0; p < (char *) 0x80000; ++p ) {
+	    if ( check(p,pat, 256 ) ) {
+		printf("Found first sector at ");
+		hex8(p);
+		putchar('\n');
+	    }
+	    }
+}
+
+check(mem,pat,num)
+char *mem;
+char *pat;
+{
+	register char *p, *q;
+
+	p = mem;
+	q = pat;
+	while ( num-- )
+	    if ( *p++ != *q++ )
+		return(0);
+	return (1);
+}
+
+
+fdinit()
+{
+	int stat;
+	register timeout;
+
+/*	*FD_RESET_ON = 0;	*/
+
+	*DISK_BIU_RESET = 0;	/***/
+	*FD_RESET_OFF = 0;
+	timeout = *FD_STATUS;	/***/
+	*FD_MOTOR_ON = 0;
+
+	if ( *SC_STAT & SC_FDNP )
+	    printf("WARNING !! no drive or cable wrong !!\n");
+
+	for ( timeout=400000; timeout; --timeout )
+	    if ( ! (*FD_STATUS & FD_NREADY) )
+		break;
+
+	if ( density == SINGLE )
+	    *FD_SINGLE = 0;
+	else
+	    *FD_DOUBLE = 0;
+
+	if ( ! timeout ) {
+	    fderr("Timeout: drive not ready",*FD_STATUS);
+	    return;
+	}
+
+	*FD_COMMAND = 0x0;	/* restore */
+	fddone();
+	*FD_TRACK = 0;		/***/
+
+	if ( ! ((stat = *FD_STATUS) & FD_TRACK0) )
+	    fderr("Restore failed to get Track 0",stat);
+}
+
+sectorio(iotype)
+{
+	int track, side, sector;
+	register char *cp;
+
+	cp = prompt("track (0-N)? ");
+	track = atol(cp);
+	if ( track < 0 ) track = 0;
+	if ( track > NTRACK-1 ) track = NTRACK-1;
+
+	cp = prompt("side (0,1)? ");
+	side = atol(cp) & 1;
+
+	cp = prompt("sector (0-N)? ");
+	sector = atol(cp);
+	if ( sector < 0 ) sector = 0;
+	sector &= 0x1f;
+
+	floppy (iobuf,iotype,sector,track,side);
+
+	if ( iotype == READ )
+	    vxdmp(iobuf,SSIZE);
+}
+
+readtest()
+{
+	int track, side, sector;
+
+	for ( track=0; track<NIOTRACK; track++ ) {
+	    printf("reading track: %d\n",track);
+	    for ( side=0; side<2; side++ )
+		for ( sector=0; sector<NSECTOR; sector++ )
+		    floppy (iobuf,READ,sector,track,side);
+	}
+}
+
+#define PAT0	0xf1
+rwtest()
+{
+	int track, side, sector;
+	char *resp;
+	register unsigned char *cp;
+	register unsigned char *ep;
+
+	printf("WARNING !!!\n");
+	printf("This test destroys all data on a floppy\n");
+	resp = prompt("Enter Y to continue: ");
+	if ( *resp != 'Y' )
+	    return;
+
+	ep = (unsigned char *) &iobuf[SSIZE];
+
+	for ( track=0; track<NIOTRACK; track++ ) {
+
+	    for ( cp=(unsigned char *)iobuf; cp<ep; )
+		*cp++ = PAT0;
+
+	    printf("writing track: %d\n",track);
+	    for ( side=0; side<2; side++ )
+		for ( sector=0; sector<NSECTOR; sector++ )
+		    floppy (iobuf,WRITE,sector,track,side);
+
+	    printf("reading track: %d\n",track);
+	    for ( side=0; side<2; side++ )
+		for ( sector=0; sector<NSECTOR; sector++ ) {
+		    floppy (iobuf,READ,sector,track,side);
+		    for ( cp=(unsigned char *)iobuf; cp<ep; )
+			if ( *cp++ != PAT0 ) {
+				printf("bad read, side %d, sector %d\n",
+				    side,sector);
+/*				break;	*/
+			}
+		}
+	}
+}
+
+
+/* called before main - allows hardware initialization */ 
+configure()
+{
+}
+
+static curtrack = -1;
+
+floppy (buf,io,sector,track,side)
+char *buf;
+{
+	int stat;
+	register nio;
+	register unsigned dmatmp;
+
+	*DISK_DMA_DISABLE = 0;
+	*DISK_BIU_RESET = 0;
+
+	nio = SSIZE;
+	nio = -(nio>>1);
+	*DISK_DMA_COUNT = nio;
+
+	dmatmp = ((unsigned int) buf) >> 1;	/* word address */
+	dmatmp &= 0xffff;
+#ifdef DEBUG
+	printf("lower DMA address: ");
+	hex4(dmatmp);
+	putchar('\n');
+#endif
+	*DISK_DMA_LADDR = dmatmp;
+
+	dmatmp = ((unsigned int) buf) >> 1;	/* word address */
+	dmatmp >>= 16;
+#ifdef DEBUG
+	printf("upper DMA address: ");
+	hex4(dmatmp);
+	putchar('\n');
+#endif
+
+	if ( io == READ )
+	    *DISK_DMA_UADDR_R = dmatmp;
+	else
+	    *DISK_DMA_UADDR_W = dmatmp;
+
+	*FD_DATA = track;
+	if ( track != curtrack ) {
+	    fdseek(track);
+	    curtrack = track;
+	}
+
+	*FD_DMA_ENABLE = 0;
+
+#ifdef DEBUG
+	printf("Sector %d\n",sector);
+#endif
+	*FD_SECTOR = sector + 1;
+
+	if ( density == SINGLE )
+	    *FD_SINGLE = 0;
+	else
+	    *FD_DOUBLE = 0;
+
+	/* using dmatmp as a scratch variable */
+	if ( io == READ )
+	    dmatmp = 0x88;
+	else
+	    dmatmp = 0xa8;
+	if ( side )
+	    dmatmp |= 0x02;
+#ifdef DEBUG
+	printf("Command to floppy controller: ");
+	hex2(dmatmp);
+	putchar('\n');
+#endif
+
+	/* GO for it !! */
+
+	*FD_COMMAND = dmatmp;
+
+	fddone();
+	stat = *FD_STATUS;
+#ifdef DEBUG
+	printf("Done with floppy status: ");
+	hex2(stat);
+	putchar('\n');
+#endif
+	if ( stat & (FD_NREADY|FD_WPROT|FD_RNF|FD_CRCERR|FD_LDATA) )
+	    fderr("IO error",stat);
+}
+
+read_track (buf,nio,side)
+char *buf;
+{
+	int ocount;	/* original count */
+	int stat;
+	register unsigned dmatmp;
+
+	*DISK_DMA_DISABLE = 0;
+	*DISK_BIU_RESET = 0;
+
+	ocount = -(nio>>1);
+	*DISK_DMA_COUNT = ocount;
+
+	dmatmp = ((unsigned int) buf) >> 1;	/* word address */
+	*DISK_DMA_LADDR = dmatmp & 0xffff;
+
+	dmatmp >>= 16;
+	*DISK_DMA_UADDR_R = dmatmp;
+
+	*FD_DMA_ENABLE = 0;
+
+	dmatmp = (0xe0 | side<<1);
+	*FD_COMMAND = dmatmp;
+
+	fddone();
+	stat = *FD_STATUS;
+#ifdef DEBUG
+	printf("Done with floppy status: ");
+	hex2(stat);
+	putchar('\n');
+#endif
+	ocount = *DISK_DMA_COUNT - ocount;
+	printf("DMA moved %d words\n",ocount);
+
+	if ( stat & (FD_NREADY|FD_WPROT|FD_RNF|FD_CRCERR|FD_LDATA) ) {
+	    fderr("IO error",stat);
+	}
+	return(ocount<<1);
+}
+
+#ifdef NEVER
+fdrestore()
+{
+	int stat;
+
+	*FD_COMMAND = 0x04;	/* restore with verify */
+	fddone();
+	if ( (stat = *FD_STATUS) & (FD_NREADY|FD_SEEKERR|FD_CRCERR) )
+	    fderr("Restore error",stat);
+}
+#endif
+
+seektest()
+{
+	int t1 = 0;
+	int t2 = NIOTRACK-1;
+
+	while ( t1 <= t2 ) {
+	    printf("Seeking to track %d\n",t1);
+	    fdseek(t1++);
+	    printf("Seeking to track %d\n",t2);
+	    fdseek(t2--);
+	}
+
+}
+
+fdseek(track)
+{
+	int stat;
+
+
+#ifdef DEBUG
+	printf("seeking to track %d\n",track);
+#endif
+	*FD_DATA = track;
+
+	if ( density == SINGLE )
+	    *FD_SINGLE = 0;
+	else
+	    *FD_DOUBLE = 0;
+
+	*FD_COMMAND = 0x14;	/* seek with verify */
+	fddone();
+	if ( (stat = *FD_STATUS) & (FD_NREADY|FD_SEEKERR|FD_CRCERR) )
+	    fderr("Seek error",stat);
+}
+
+#define PICTIMEOUT	100000		/* was 400000 */
+/* note: the "interrupt" is presented only on one read by the 8259
+ * when polling like this, you read 07 continuously, then once get
+ * 0x87, then back to 07 as long as you care to keep reading.
+ * Also note that on this machine, when reading an 8 bit register
+ * on a 16 bit bus, the upper 8 bits gets set to ones, so you get
+ * 0xff87 (or 0xff07, it is not sign extension).
+ */
+fddone()
+{
+	long timeout;
+	register picstat;
+
+#ifdef DEBUG
+	int picold = -1;
+	printf("begin fddone (wait for IO)\n");
+#endif
+	*PIC_OCW = 0x7f;
+	timeout = PICTIMEOUT;
+	while ( timeout-- ) {
+	    *PIC_ICW = 0x0e;
+	    picstat = *PIC_ICW;
+#ifdef DEBUG
+	    if ( picold == -1 ) {
+		printf("PIC status = ");
+		hex2(picstat);
+		putchar('\n');
+		picold = picstat;
+	    } else if ( picstat != picold ) {
+		printf("PIC status = ");
+		hex2(picstat);
+		putchar('\n');
+		picold = picstat;
+	    }
+#endif
+	    if ( (picstat & 0xff) == 0x87 )
+		break;
+	}
+#ifdef DEBUG
+	printf("Done with IO wait loop");
+	if ( timeout == -1 )
+	    printf(" TIMEOUT");
+#endif
+	if ( timeout == 0 )
+	    printf(" TIMEOUT\n");
+
+	*DISK_DMA_DISABLE = 0;
+/*	*DISK_BIU_RESET = 0;	*/
+	*PIC_OCW = 0xff;
+#ifdef DEBUG
+	putchar('\n');
+#endif
+}
+
+fderr(msg,status)
+char *msg;
+{
+	printf("%s, status = ",msg);
+	hex2(status);
+	putchar('\n');
+}
+
+char *
+prompt(msg)
+	char *msg;
+{
+	static char buf[132];
+
+	printf("%s", msg);
+	gets(buf);
+	return (buf);
+}
+
+/********/
+
+#define HEX(x)	((x)<10 ? '0'+(x) : 'a'+(x)-10)
+
+/* vxdmp - memory dump, vxworks style */
+vxdmp(b,n)
+char *b;
+{
+	register i;
+	register j;
+	register c;
+
+	for ( i=0; i<n; i+=16,b+=16 ) {
+	    hex8(i); printf(":  ");
+	    for ( j=0; j<16; j+=2 ) {
+		if ( j == 8 )
+		    putchar(' ');
+		hex2(b[j]); hex2(b[j+1]);
+	    }
+	    printf(" *");
+	    for ( j=0; j<16; j++ ) {
+		c = b[j]&0x7f;
+		if ( c < ' ' || c > '~' )
+		    c = '.';
+		putchar(c);
+	    }
+	    printf("*\n");
+	}
+}
+
+#ifdef NEVER
+hex8(val)
+long val;
+{
+	hex2(val>>24);
+	hex2(val>>16);
+	hex2(val>>8);
+	hex2(val);
+}
+
+hex4(val)
+{
+	hex2(val>>8);
+	hex2(val);
+}
+
+hex2(val)
+{
+	putchar(HEX((val>>4)&0xf));
+	putchar(HEX(val&0xf));
+}
+#endif

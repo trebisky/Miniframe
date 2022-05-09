@@ -23,4 +23,5 @@ Here are the projects:
 
 Roms -- boot rom files and disassembly
 Monitor -- modified roms with interactive monitor
+Standalone -- various things that can boot from floppy
 

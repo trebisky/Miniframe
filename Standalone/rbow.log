@@ -1,0 +1,395 @@
+floppy: e
+DMA moved 3127 words
+IO error, status = 04
+00000000:  e4e4e4e4e4e4e4e4 e4e4e4e4e4e4e4e4 *dddddddddddddddd*
+00000010:  e4e4e4e4e4e4e4e4 e4e4e4e4e4e4e4e4 *dddddddddddddddd*
+00000020:  e4e4e4e4e4e4e4e4 e4e4e4e4e0000000 *dddddddddddd`...*
+00000030:  000000000aa1a1fe 01000102bcdb4e4e *.....!!~....<[NN*
+00000040:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *NNNNNNNNNNNNNNNN*
+00000050:  4e4e4e4e00ffffff ffffffffffffffff *NNNN............*
+00000060:  ffc2a1a1fbfafafa fafafafafafafafa *.B!!{zzzzzzzzzzz*
+00000070:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000080:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000090:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000000a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000000b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000000c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000000d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000000e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000000f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000100:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000110:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000120:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000130:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000140:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000150:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000160:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000170:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000180:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000190:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000001a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000001b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000001c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000001d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000001e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000001f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000200:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000210:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000220:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000230:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000240:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000250:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000260:  fafafafafaf8bafe 8484848484848484 *zzzzzx:~........*
+00000270:  8484848484848484 8484848484848484 *................*
+00000280:  8484848484848484 8484848484848484 *................*
+00000290:  84848484848487ff fffffffffffff8c2 *..............xB*
+000002a0:  a1a1fe01000202e9 884e4e4e4e4e4e4e *!!~....i.NNNNNNN*
+000002b0:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e4e01 *NNNNNNNNNNNNNNN.*
+000002c0:  ffffffffffffffff ffffffffc2a1a1fb *............B!!{*
+000002d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000002e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000002f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000300:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000310:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000320:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000330:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000340:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000350:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000360:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000370:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000380:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000390:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000003a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000003b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000003c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000003d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000003e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000003f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000400:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000410:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000420:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000430:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000440:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000450:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000460:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000470:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000480:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000490:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000004a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000004b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000004c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000004d0:  f8baffc242424242 4242424242424242 *x:.BBBBBBBBBBBBB*
+000004e0:  4242424242424242 4242424242424242 *BBBBBBBBBBBBBBBB*
+000004f0:  4242424242424242 42424242424243ff *BBBBBBBBBBBBBBC.*
+00000500:  fffffffffffffcc2 a1a1fe01000302da *......|B!!~....Z*
+00000510:  b94e4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *9NNNNNNNNNNNNNNN*
+00000520:  4e4e4e4e4e4e4e01 ff00000000000000 *NNNNNNN.........*
+00000530:  0000000014a1a1fb fafafafafafafafa *.....!!{zzzzzzzz*
+00000540:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000550:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000560:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000570:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000580:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000590:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000005a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000005b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000005c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000005d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000005e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000005f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000600:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000610:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000620:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000630:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000640:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000650:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000660:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000670:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000680:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000690:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000006a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000006b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000006c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000006d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000006e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000006f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000700:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000710:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000720:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000730:  fafafafafafafafa f8bafe0b4e4e4e4e *zzzzzzzzx:~.NNNN*
+00000740:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *NNNNNNNNNNNNNNNN*
+00000750:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *NNNNNNNNNNNNNNNN*
+00000760:  4e4e4e4e4e4e4e4e 4e4e4e4e00000000 *NNNNNNNNNNNN....*
+00000770:  0000000014a1a1fe 01000402432e4e4e *.....!!~....C.NN*
+00000780:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *NNNNNNNNNNNNNNNN*
+00000790:  4e4e4e4e00000000 0000000000000000 *NNNN............*
+000007a0:  0014a1a1fbfafafa fafafafafafafafa *..!!{zzzzzzzzzzz*
+000007b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000007c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000007d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000007e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000007f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000800:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000810:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000820:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000830:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000840:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000850:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000860:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000870:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000880:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000890:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000008a0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000008b0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000008c0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000008d0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000008e0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000008f0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000900:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000910:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000920:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000930:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000940:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000950:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000960:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000970:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000980:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000990:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+000009a0:  fafafafafaf8bafe 3939393939393939 *zzzzzx:~99999999*
+000009b0:  3939393939393939 3939393939393939 *9999999999999999*
+000009c0:  3939393939393939 3939393939393939 *9999999999999999*
+000009d0:  3939393939380000 00000000000214a1 *999998.........!*
+000009e0:  a1fe01000502701f 4e4e4e4e4e4e4e4e *!~....p.NNNNNNNN*
+000009f0:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e0000 *NNNNNNNNNNNNNN..*
+00000a00:  0000000000000000 00000014a1a1fbfa *............!!{z*
+00000a10:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a20:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a30:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a40:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a50:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a60:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a70:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a80:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000a90:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000aa0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ab0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ac0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ad0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ae0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000af0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b00:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b10:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b20:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b30:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b40:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b50:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b60:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b70:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b80:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000b90:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ba0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000bb0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000bc0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000bd0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000be0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000bf0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000c00:  fafafafafafafafa fafafafafafafaf8 *zzzzzzzzzzzzzzzx*
+00000c10:  bafe909090909090 9090909090909090 *:~..............*
+00000c20:  9090909090909090 9090909090909090 *................*
+00000c30:  9090909090909090 9090909090909090 *................*
+00000c40:  ffffffffffffffff c2a1a1fe01000602 *........B!!~....*
+00000c50:  254c4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *%LNNNNNNNNNNNNNN*
+00000c60:  4e4e4e4e4e4e4e4e 0000000000000000 *NNNNNNNN........*
+00000c70:  000000000014a1a1 fbfafafafafafafa *......!!{zzzzzzz*
+00000c80:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000c90:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ca0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000cb0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000cc0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000cd0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000ce0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000cf0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d00:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d10:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d20:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d30:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d40:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d50:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d60:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d70:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d80:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000d90:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000da0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000db0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000dc0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000dd0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000de0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000df0:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e00:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e10:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e20:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e30:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e40:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e50:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e60:  fafafafafafafafa fafafafafafafafa *zzzzzzzzzzzzzzzz*
+00000e70:  fafafafafafafafa faf8bafe12121212 *zzzzzzzzzx:~....*
+00000e80:  1212121212121212 1212121212121212 *................*
+00000e90:  1212121212121212 1212121212121212 *................*
+00000ea0:  1212121212121212 121fffffffffffff *................*
+00000eb0:  ffe1a1a1fe010007 02167d4e4e4e4e4e *.a!!~.....}NNNNN*
+00000ec0:  4e4e4e4e4e4e4e4e 4e4e4e4e4e4e4e4e *NNNNNNNNNNNNNNNN*
+00000ed0:  4e01e00000000000 00000000000014a1 *N.`............!*
+00000ee0:  a1fbc38000000000 0000000000000000 *!{C.............*
+00000ef0:  0000000000000000 0000c30000000000 *..........C.....*
+00000f00:  00007618fdfb76c9 0000000000000000 *..v.}{vI........*
+00000f10:  0000c30000000000 0000000000000000 *..C.............*
+00000f20:  0000db4087f830fa eda218f600000000 *..[@.x0zm".v....*
+00000f30:  0000000000000000 0000000000000000 *................*
+00000f40:  0000000000000000 0000000000000000 *................*
+00000f50:  0000000000000000 0000000000000000 *................*
+00000f60:  0000210000110080 010008edb03e70d3 *..!........m0>pS*
+00000f70:  21c3000100000000 0000000000000000 *!C..............*
+00000f80:  0000080003f501fe 0100010201f7164e *.....u.~.....w.N*
+00000f90:  0c0003f501fb00e5 00e501f7304e0000 *...u.{.e.e.w0N..*
+00000fa0:  0000000000000000 0000000000000000 *................*
+00000fb0:  0000000000000000 0000000000000000 *................*
+00000fc0:  0000000000000000 0000000000000000 *................*
+00000fd0:  0000000000000000 0000000000000000 *................*
+00000fe0:  0000213f01223100 319000af329100fd *..!?."1.1../2..}*
+00000ff0:  21fcfefbc32000f3 319000210000e53e *!|~{C .s1..!..e>*
+00001000:  ff329100dd6e02dd 6603fbe9dd6e02dd *.2..]n.]f.{i]n.]*
+00001010:  6603dd5e04dd5605 dd4e06dd4607edb0 *f.]^.]V.]N.]F.m0*
+00001020:  c9fd6e00fd6601e5 dde1affd7700fd77 *I}n.}f.e]a/}w.}w*
+00001030:  01db007cb5285a01 9201c5fbdd7e00fe *.[.|5(Z...E{]~.~*
+00001040:  13ca6202fe142000 f801c0200cfc01c0 *.Jb.~. .x.@ .|.@*
+00001050:  2000f8019c861e01 99860c01982100f8 * .x..........!.x*
+00001060:  01922100f8019021 23f001398fc03c80 *..!.x..!#p.9.@<.*
+00001070:  000000fc0000101c 0000fe0003fc08fe *...|......~..|.~*
+00001080:  0001fe0011fc0200 9e00243c8000884c *..~..|....$<...L*
+00001090:  fe00242083f02040 f0c1ff81e62073f0 *~.$ .p @pA..f sp*
+000010a0:  20003920f820009f e00001f02101f0f1 * .9 x ..`..p!.pq*
+000010b0:  c3e1062049f0c618 0010ccff0ff1f980 *Ca. IpF...L..qy.*
+000010c0:  02081f8ffc809cff fe003e200087e600 *....|...~.> ..f.*
+000010d0:  1fcff21c0cc7ccc0 00019e001c0c8000 *.Or..GL@........*
+000010e0:  208130c200070909 0909090909090909 * .0B............*
+000010f0:  0909090909090909 0909090909090909 *................*
+00001100:  0909090909090909 0909090909090909 *................*
+00001110:  090fffffffffffff fff0c2a1a1fe0100 *.........pB!!~..*
+00001120:  080206434e4e4e4e 4e4e4e4e4e4e4e4e *...CNNNNNNNNNNNN*
+00001130:  4e4e4e4e4e4e4e4e 4e4e000000000000 *NNNNNNNNNN......*
+00001140:  0000000000000014 a1a1fb073e0bc377 *........!!{.>.Cw*
+00001150:  073a5500fe20ca90 0321eda22246000e *.:U.~ J..!m""F..*
+00001160:  63d5110000061421 5a00c51400f88213 *cU.....!Z.E..x..*
+00001170:  c0f27f06700ffc00 021ff00338040030 *@r..p.|...p.8..0*
+00001180:  07861f0007921f02 0798079e1f120787 *................*
+00001190:  1f030c0007c67880 3200008207c0e003 *.....Fx.2....@`.*
+000011a0:  c207ff1fe607e082 07c000e003c0821f *B...f.`..@.`.@..*
+000011b0:  c61f9807f0e403c0 e103c00007c00047 *F...pd.@a.@..@.G*
+000011c0:  c22423ff07f84270 006664c7f8738462 *B$#..xBp.fdGxs.b*
+000011d0:  0423f8206601f882 13c08407c20403f8 *.#x f.x..@..B..x*
+000011e0:  07fe1e060407f800 027f220e2407fe07 *.~....x...".$.~.*
+000011f0:  9881cfc04110e407 c0801fc718220e24 *..O@A.d.@..G.".$*
+00001200:  07f807c67e000224 03fe022407fe0407 *.x.F~..$.~.$.~..*
+00001210:  f800027e660e2407 f80070c08003c21f *x..~f.$.x.p@..B.*
+00001220:  c01fc0c020720481 3e1f3cc384188127 *@.@@ r..>.<C...'*
+00001230:  c0801fc0e043e60e 2407f807c08403c0 *@..@`Cf.$.x.@..@*
+00001240:  0007c00047c0e1e7 e0821fc0e443e000 *..@.G@ag`..@dC`.*
+00001250:  07c00047c22423ff 07f84270006264c7 *.@.GB$#..xBp.bdG*
+00001260:  f87384620423f820 6600788213c21f03 *xs.b.#x f.x..B..*
+00001270:  0c0007c08403c000 821fc030e443e000 *...@..@...@0dC`.*
+00001280:  07c00047c3180000 07f80700e403c000 *.@.GC....x..d.@.*
+00001290:  07c00047c0006080 03e007fe0427f820 *.@.G@.`..`.~.'x *
+000012a0:  708403c20780e003 c08103c2243ffe24 *p..B..`.@..B$?~$*
+000012b0:  13f80007f8064e1f 808043c08003c21f *.x..x.N...C@..B.*
+000012c0:  c207c0e403c00007 c807fe1fc00000e0 *B.@d.@..H.~.@..`*
+000012d0:  03e307fe067e2403 f8e013f00007f806 *.c.~.~$.x`.p..x.*
+000012e0:  488003e270006264 c7ff07ffc43e07f0 *H..bp.bdG...D>.p*
+000012f0:  c3c780206601f882 13c007fe1f8f0c00 *CG. f.x..@.~....*
+00001300:  07ce7830f207c0e0 03c000660807821f *.Nx0r.@`.@.f....*
+00001310:  e607f33800f33fc8 00e003c204182078 *f.s8.s?H.`.B.. x*
+00001320:  0060c7c807861fce 07cf1f0007821fce *.`GH...N.O.....N*
+00001330:  07e31f80078e1fce 07e71fc007821fe6 *.c.....N.g.@...f*
+00001340:  07f00081c7c03318 c200020000c00010 *.p..G@3.B....@..*
+00001350:  2d39393939393939 3939393939393939 *-999999999999999*
+00001360:  3939393939393939 3939393939393939 *9999999999999999*
+00001370:  3939393939393939 3939393939393939 *9999999999999999*
+00001380:  3800000000000000 0214a1a1fe010009 *8.........!!~...*
+00001390:  0235724e4e4e4e4e 4e4e4e4e4e4e4e4e *.5rNNNNNNNNNNNNN*
+000013a0:  4e4e4e4e4e4e4e4e 4e01000000000000 *NNNNNNNNN.......*
+000013b0:  00000000000014a1 a1fbdd7e04feff28 *.......!!{]~.~.(*
+000013c0:  0bfe00280706010e 58cd9205af325500 *.~.(....XM../2U.*
+000013d0:  dd6e06dd66071601 062f3e4ecd9a0506 *]n.]f..../>NM...*
+000013e0:  0afd21a000c50604 c5fd4600fd23fd7e *.}! .E..E}F.}#}~*
+000013f0:  00fd23cd9a05c110 ef0601cdac05cd9a *.}#M..A.o..M,.M.*
+00001400:  0506017acd9a0506 0ac5fd4600fd23fd *...zM....E}F.}#}*
+00001410:  7e00fd23cd9a05c1 10ef143cce38f1ff *~.}#M..A.o.<N8q.*
+00001420:  81202041f0f1ff81 202041f0c2700062 *.  Apq..  ApBp.b*
+00001430:  64c7fe0487f84273 23fe649ffe731802 *dG~..xBs#~d.~s..*
+00001440:  6493ff07f3c43800 07c800021f9c0082 *d...sD8..H......*
+00001450:  4fc2043120c20720 1e1fc20413f88000 *OB.1 B. ..B..x..*
+00001460:  20f80007c00047c0 c00333ffff846200 * x..@.G@@.3...b.*
+00001470:  388213c0002007f8 30f21f060403f807 *8..@. .x0r....x.*
+00001480:  c67f908203c03000 70e003c20e2403ff *F....@0.p`.B.$..*
+00001490:  18c800000007fe70 204000063f067000 *.H....~p @..?.p.*
+000014a0:  4000061f00300007 c800027f02041820 *@....0..H...... *
+000014b0:  7881c7c3c21f3082 4fc31900308203c2 *x.GCB.0.OC..0..B*
+000014c0:  0730300070e003c0 8203c03000700007 *.00.p`.@..@0.p..*
+000014d0:  c8000207fe780607 9881cfc0e11fe0c3 *H...~x....O@a.`C*
+000014e0:  c780c00007c00047 c3f203ff9020f33f *G.@..@.GCr... s?*
+000014f0:  e308f090c3f01fe7 1820f0726487fe73 *c.p.Cp.g. prd.~s*
+00001500:  1806649ff8c09000 47e00007e0400070 *..d.x@..G`..`@.p*
+00001510:  900007f807061e60 0007c007f21f0002 *...x...`..@.r...*
+00001520:  0403fe0e2403f806 1f388007c0c00007 *..~.$.x..8..@@..*
+00001530:  f80720188403e0e3 93e207f8e003c020 *x. ...`c.b.x`.@ *
+00001540:  7800f9c021c7c000 78000398930c1081 *x.y@!G@.x.......*
+00001550:  cfc3380090026338 08900007e0403fc3 *OC8...c8....`@?C*
+00001560:  c3c3c020fc009000 07e04780900007e0 *CC@ |....`G....`*
+00001570:  47809387f806021f e08030c000701c18 *G...x...`.0@.p..*
+00001580:  206098022407fe08 900881cfc0411098 * `..$.~....O@A..*
+00001590:  8000fc0007c67fe0 00c893c7c8007004 *..|..F.`.H.GH.p.*
+000015a0:  823fc384188127c3 180384188127c318 *.?C...'C.....'C.*
+000015b0:  1e0423f8c7e4c042 7247c008c0079024 *..#xGd@BrG@.@..$*
+000015c0:  2424242424242424 2424242424242424 *$$$$$$$$$$$$$$$$*
+000015d0:  2424242424242424 2424242424242424 *$$$$$$$$$$$$$$$$*
+000015e0:  2424242424242424 243fffffffffffff *$$$$$$$$$?......*
+000015f0:  ffc2a1a1fe01000a 0260211412121212 *.B!!~....`!.....*
+00001600:  1212121212121212 1212121212121212 *................*
+00001610:  121fffffffffffff ffffffffffffc2a1 *..............B!*
+00001620:  a1fbcd5b07280afe 082128062003212a *!{M[.(.~.!(. .!**
+00001630:  067846b838102346 b83e0220093e0106 *.xF88.#F8>. .>..*
+00001640:  010e58cd9205e1c9 0b0c0b0a090aaf32 *..XM..aI....../2*
+00001650:  57003d3255003256 00c9cd2c06cd9f05 *W.=2U.2V.IM,.M..*
+00001660:  14243ff840000040 700000078c000047 *.$?x@..@p......G*
+00001670:  e4003307ff103000 7000027f908033f0 *d.3...0.p.....3p*
+00001680:  07fe1878f0902070 8083c2240ff80002 *.~.xp. p..B$.x..*
+00001690:  7f908033f007fe1f e0f09307f80007f8 *...3p.~.`p..x..x*
+000016a0:  0660988003c27e20 0007c8801fc2043f *.`...B~ ..H..B.?*
+000016b0:  f83020fe2413ffc7 e64718007880027f *x0 ~$..GfG..x...*
+000016c0:  c20407f800021f80 c08087c0f27c3247 *B..x....@..@r|2G*
+000016d0:  0f38008027c0c000 18900007cfc0801f *.8..'@@.....O@..*
+000016e0:  c27fc00007c82070 2062043ff83020fe *B.@..H p b.?x0 ~*
+000016f0:  2413f8007880027f c20407f800021822 *$.x.x...B..x..."*
+00001700:  47188087c27e1204 07f8000218c307fe *G...B~...x...C.~*
+00001710:  70006264c7fe00f8 8213c21f9f0c0007 *p.bdG~.x..B.....*
+00001720:  c678231f000064c0 0007c81e1f120403 *Fx#...d@..H.....*
+00001730:  f807c61f820e2403 fe079881cfc21900 *x.F...$.~...OB..*
+00001740:  00ce07f300009020 70e03fc0207880ff *.N.s... p`?@ x..*
+00001750:  f800780003984000 92240ff840000040 *x.x...@..$.x@..@*
+00001760:  700000079c0307ff 1030003070904000 *p........0.0p.@.*
+00001770:  00407000079c0307 ff1000307092040f *.@p........0p...*
+00001780:  f807f89200008207 c207c31f82000082 *x.x.....B.C.....*
+00001790:  07c207e300031e7e 07f002040ff80002 *.B.c...~.p...x..*
+000017a0:  1fc201ff9fe6001c 008909ffc7e4001c *.B...f......Gd..*
+000017b0:  8909fff0081c000c 100000101c000001 *...p............*
+000017c0:  e3000011f9000cc1 ffc40c081c0000fc *c...y..A.D.....|*
+000017d0:  24ce002009f03000 06240001f3f02007 *$N. .p0..$..sp .*
+000017e0:  f0c27fc00007c820 702062043ff83020 *pB.@..H p b.?x0 *
+000017f0:  fe2413f800788002 7fc20407f8000218 *~$.x.x...B..x...*
+00001800:  2247188087c27e12 0407f8000218c307 *"G...B~...x...C.*
+00001810:  fe70006264c7fe00 f88213c21f9f0c00 *~p.bdG~.x..B....*
+00001820:  07c467fc220002d3 9393939393939393 *.Dg|"..S........*
+00001830:  9393939393939393 9393939393939393 *................*
+00001840:  9393939393939393 9393939393939393 *................*
+00001850:  9393939393939393 9393939393939393 *................*
+00001860:  9393939393939393 9393939304e44848 *.............dHH*
+6254 bytes read
