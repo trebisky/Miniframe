@@ -22,6 +22,7 @@ sparstation for some things.
 Here are the projects:
 
 Roms -- boot rom files and disassembly
+Diskmon -- interactive monitor to boot from floppy
 Monitor -- modified roms with interactive monitor
 Standalone -- various things that can boot from floppy
 

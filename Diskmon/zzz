@@ -1,0 +1,182 @@
+/* "slow comm port" first 4 ports only are 8274 (7201) */
+struct mpuart {
+	short	adata;	/* 8274 -- channel A data */
+	short	bdata;	/* 8274 -- channel B data */
+	short	astat;	/* 8274 -- channel A status/cmd */
+	short	bstat;	/* 8274 -- channel B status/cmd */
+	short	csel;	/*   uart clock select */
+	short	pstat;	/*   "port status" (hodge-podge of bits) */ 
+	short	reset;	/*   8274 reset */
+};
+
+/* 8253 counter/timer - this one is used for baud rate generation */
+struct timer {
+	short	timera;	/* baud rate for uart channel A */
+	short	timerb;	/* baud rate for uart channel B */
+	short	timerc;	/* UNUSED */
+	short	tcmd;	/* command register */
+};
+
+#define BAUD	((struct timer *) 0xc40000)
+#define UART	((struct mpuart *) 0xc30000)
+
+#define RCA	0x01	/* 8274 - receive character available */
+#define TBE	0x04	/* 8274 - transmitter buffer empty */
+
+/******* Support routines follow ***************************/
+#define B9600	8
+#define B1200	64
+
+/* hwinit - do all the hardware initialization we can from C */
+hwinit()
+{
+#ifndef TEST
+	LIGHTS(3);
+	sbaud(0,B9600);
+	sbaud(1,B9600);
+	cini();
+#endif
+}
+
+#ifndef TEST
+/* cini - initialize the UART hardware */
+cini()
+{
+	LIGHTS(4);
+	UART->reset = 0;
+	UART->csel = 0;
+	UART->astat = 0x18;	/* 8274 reset */
+	UART->astat = 0x18;	/* 8274 reset */
+	UART->astat = 2;
+		UART->astat = 0x00;	/* no interrupts */
+	UART->astat = 4;
+		UART->astat = 0x44;	/* 16x clock, 1 stop */
+	UART->astat = 3;
+		UART->astat = 0xC1;	/* enable Rcvr, 8bits data */
+	UART->astat = 5;
+		UART->astat = 0xEA;	/* enable Xmtr, 8bits, DTR, RTS */
+	UART->astat = 1;
+		UART->astat = 0x00;	/* no interrupts */
+}
+
+/* sbaud - set up the baud rate generator timer,
+		the nop() calls are because the timer is so slow
+		that we must avoid accessing it on successive machine cycles
+*/
+nop() {}
+
+sbaud(chan,div)
+{
+	LIGHTS(5);
+	if ( chan == 0 ) {	/* Baud rate for UART channel A */
+		BAUD->tcmd = 0x36;
+		nop();
+		BAUD->timera = div&0xff;	/* lsb first */
+		nop();
+		BAUD->timera = div>>8;
+	} else {		/* for UART channel B */
+		BAUD->tcmd = 0x76;
+		nop();
+		BAUD->timerb = div&0xff;	/* lsb first */
+		nop();
+		BAUD->timerb = div>>8;
+	}
+
+}
+#endif
+
+#define GETSBUFSIZE	128
+char *gets()
+{
+	static char buf[GETSBUFSIZE];
+	register unsigned char c;
+	register char *line = buf;
+
+	LIGHTS(6);
+	while ( (c = getc()) != '\n' ) {	/* force lower case */
+	    if ( c >= 'A' && c <= 'Z' )
+		c += ('a'-'A');
+	    if ( line < &buf[GETSBUFSIZE-1] )	/* insurance */
+		*line++ = c;
+	}
+	*line = '\0';
+	return ( buf );
+}
+
+/* chkc - check for a keypress, never block, throw it away */
+#ifdef TEST
+chkc() { return (0); }
+#else
+chkc()
+{
+	register c;
+
+	if ( ! (UART->astat & RCA) )
+	    return (0);
+	c = UART->adata & 0x7f;	/* get rid of it, no echo */
+	chkc();		/* get rid of everything, recursion */
+	return (1);
+}
+#endif
+
+/* getc - simple polled character input */
+#ifdef TEST
+getc() { return (tgetchar()); }
+#else
+getc()
+{
+	register c;
+
+	LIGHTS(7);
+	while ( ! (UART->astat & RCA) )
+	    ;
+	LIGHTS(12);
+	c = UART->adata & 0x7f;
+	if ( c == '\r' )
+	    c = '\n';
+	putc(c);	/* echo */
+	return ( c );
+}
+#endif
+
+puth(b,n)
+register char *b;
+register n;
+{
+	register unsigned char t;
+
+	LIGHTS(8);
+	while ( n-- ) {
+		t = (*b>>4) & 0xf;
+		putc ( (t<10) ? '0'+t : 'A'+(t-10) );
+		t = *b++ & 0xf;
+		putc ( (t<10) ? '0'+t : 'A'+(t-10) );
+	}
+}
+
+puts(s)
+register unsigned char *s;
+{
+	LIGHTS(9);
+	while ( *s )
+		putc ( *s++ );
+}
+
+#ifdef TEST
+putc(c) { tputchar(c); }
+#else
+/* On the Sun-3, '\n' is a 0x0a and '\r' is a 0x0d, if some other
+ * fish-brained system makes them equal we are in for trouble */
+putc(c)
+{
+	LIGHTS(10);
+	while ( ! (UART->astat & TBE) )
+		;
+	LIGHTS(11);
+	UART->adata = c;
+	if ( c == '\n' )
+		putc('\r');	/* recursive ! */
+}
+#endif
+
+/* END */
