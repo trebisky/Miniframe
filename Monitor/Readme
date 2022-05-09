@@ -1,0 +1,34 @@
+Notes on roms 7/13/92
+
+On 7/13/92, I burned a pair of diagnostic roms for pb@cs.du.edu.
+I used the files here (erom.hex and orom.hex) dated 12/26/90.
+This seems to be the date (in mkrom.c) that I added the patch for the
+bad bit in my original roms.
+
+At this time, I read out the roms in my miniframe here at S.O.  The hex files
+are quite similar, but different from these.  This probably means these roms
+need to be updated.  I saved these readout files as [eo]oldrom.hex.
+
+XXX -- here is a TODO list if/when I work on these again.
+
+1) add tty line and character kill stuff
+
+2) add a breakpoint facility using trap #15 (call the existing "x"
+	feature a watchpoint).
+
+3) add the gdb nub as a "n" command  N [port] [speed]
+
+	default port is probably 0 (??), default speed is 38400
+
+On 10/30/93, my office miniframe refused to run, the halt light coming
+and staying on.  It turned out that with the windows open and being near
+an open south window, the roms had been partially erased -- anyway this
+machine was the one with the [eo]oldrom.hex files (now deleted).
+I burned new roms for this board from the [eo]rom.hex files and things
+work fine!  So now both my machines are up-to-date.
+An interesting side-note, reading out the partially erased roms and
+comparing them to the [eo]oldrom.hex files:  the even rom had only a
+few bit errors (turned to ones), the odd rom (closer to the window),
+had many more errors.
+
+Call these the 1.0 roms.

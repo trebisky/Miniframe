@@ -22,4 +22,5 @@ sparstation for some things.
 Here are the projects:
 
 Roms -- boot rom files and disassembly
+Monitor -- modified roms with interactive monitor
 

@@ -1,0 +1,43 @@
+# Make patch file for convergent tech boot roms
+# The -N switch to ld avoids a segment violation from the -T option
+
+PATCH_LOC = 0x800172
+ENTER_LOC = 0x80017a
+MON_LOC = 0x801000
+RAM_LOC = 50000
+
+ROM:	mkrom mon
+	mkrom b $(PATCH_LOC) $(MON_LOC) mon
+
+mkrom:	mkrom.c
+	cc -o mkrom mkrom.c
+
+mon:	mon.o cmon.o
+	ld -N -T $(RAM_LOC) -o mon -s mon.o cmon.o
+
+mon.o:	mon.s
+	as -o mon.o -m68010 mon.s
+
+amon.o:	amon.s
+
+cmon.o:	cmon.c
+	cc -fsoft -mc68010 -DREENTER=$(ENTER_LOC) -S cmon.c
+	as -o cmon.o -m68010 cmon.s
+
+# test and adb stuff below
+test:	cmon.c testio.c
+	cc -o test -DREENTER=0x2020 -DTEST cmon.c testio.c
+	rm cmon.o
+
+ADB:	mon.p cmon.c
+	/lib/cpp -P -DTEST mon.p amon.s
+	as -o amon.o -m68010 amon.s
+	cc -o acmon.s -fsoft -mc68010 -S -DTEST cmon.c
+	as -o acmon.o -m68010 acmon.s
+	ld -dc -dp -e mon_ent -o ADB amon.o acmon.o
+
+# Just an experiment with the bsr instruction
+patch:	patch.s
+	as -o patch.o -m68010 patch.s
+	ld -N -T 800000 -o patch -s patch.o
+
