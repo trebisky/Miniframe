@@ -1,0 +1,1191 @@
+; conv.dis - disassembly of Convergent Technologies Miniframe Boot ROM's
+;
+; This is the "B" rom set (there is another set called "A" - newer ?)
+;
+;     Annotation begun 8/14/89  T. Trebisky
+;
+;     first vector gives reset stack pointer, then PC
+
+0x800000:		00005f00	
+0x800004:		00800024	
+
+0x800008:		008003f0	
+0x80000c:		008006a2	; Read
+0x800010:		0080068a	; Write
+0x800014:		00800696	; Format
+0x800018:		00800398	; find superblock pointer
+0x80001c:		008003e4	
+0x800020:		0
+
+; OK here we go, first write to the GCR (0x450000), turning off all 4 LED's,
+; disable bus-errors, and turn off the ROM bit to allow access to RAM
+;
+; GCR is just the high 8 bits:  EPER4310--------
+;  E = 1 enables NMI and BERR interrupts
+;  P = 1 enables Parity error interrupts
+;  E = 0 is even parity ( 1 = odd is normal )
+;  R = 0 forces ROM access (hides RAM), system boots up this way
+;  4310 = set low to turn on corresponding LED (0 is bottom, near connectors)
+
+0x800024:		movw	#0x3f00,0x450000:l
+
+; Now initialize the "system" 8253, The idea is to keep track of lost time
+; in the boot ROM so as to keep system clock up to date.
+; Notice that the 8253 is slow and cannot be accessed on successive cycles,
+;  this is the reason for the "nop" instructions between accesses.
+;
+;	0x74 = CW for counter 1 - lsb then msb, Mode 2 binary
+;	0xb6 = CW for counter 2 - lsb then msb, Mode 3 binary
+;
+; The 8253 has 3 counter/timers, Timer 0 is not used here (but can be
+; programmed to interrupt as "fast timer" on 8259 priority 4).
+; Timer 0 and 1 are fed a 76,800 Hz clock (REFCLK), having Timer 1 divide
+; it by 500 hex (1280) yields a 60 Hz output which can be enabled to be
+; a level 6 autovector. This output is fed to Counter 2, which just counts
+; the ticks and can be read by software, it's output is not connected anywhere.
+
+0x80002c:		movw	#0x74,0xc00006:l
+0x800034:		nop
+0x800036:		movw	#0xb6,0xc00006:l
+0x80003e:		nop
+
+; Load 8253 counter 2 with zeros
+
+0x800040:		clrw	0xc00004:l
+0x800046:		nop
+0x800048:		clrw	0xc00004:l
+0x80004e:		nop
+
+; Load 8253 counter 1 with 0x0500
+
+0x800050:		movw	#0,0xc00002:l
+0x800058:		nop
+0x80005a:		movw	#5,0xc00002:l
+
+; Initialize the first 6 Map registers, each one maps a 4K page (0-fff)
+; so this establishes a transparent mapping for 0-5fff (including the stack).
+
+0x800062:		movw	#0x2000,0x400000:l
+0x80006a:		movw	#0x2001,0x400002:l
+0x800072:		movw	#0x2002,0x400004:l
+0x80007a:		movw	#0x2003,0x400006:l
+0x800082:		movw	#0x2004,0x400008:l
+0x80008a:		movw	#0x2005,0x40000a:l
+
+; Save the processor registers (to 0-03f)
+
+0x800092:		moveml	d0-d7/a0-a7,0:l
+
+; Save GSR to 40-41
+; Save BSR0 to 42-43
+; Save BSR1 to 44-45
+
+0x80009a:		movl	#0x40,a0
+0x8000a0:		movw	0x410000:l,a0@+
+0x8000a6:		movw	0x430000:l,a0@+
+0x8000ac:		movw	0x440000:l,a0@+
+
+; Save Map registers, 000 (0x400000) to 46-47
+;                     3FF (0x4007fe) to 844-845
+
+0x8000b2:		movl	#0x400000,a1
+0x8000b8:		movl	#0x3ff,d0
+0x8000be:		movw	a1@+,a0@+
+0x8000c0:		dbra	d0,0x8000be
+
+; copy CDT (Crash Data Table) to 846-8c5
+;  Odd, it looks like 3f8 is a location in the page table just copied,
+;  but why is it used as a long pointer, that would grab two successive
+;  table entries and use them as a pointer (??!)
+; At any rate, 0x20 long entries (0x80 = 128 bytes) get moved to 846-8C5.
+
+0x8000c4:		clrw	0x420000:l	; clear CSR
+0x8000ca:		movl	0x3f8:l,d0
+0x8000d0:		bclr	#0,d0
+0x8000d4:		movl	d0,a1
+0x8000d6:		movl	#0x1f,d0
+0x8000dc:		movl	a1@+,a0@+
+0x8000de:		dbra	d0,0x8000dc
+
+; check CDT for proper CDT signature ( 'EPJR' )
+; if signature is wrong, assume power-up reset boot
+
+0x8000e2:		clrw	0x420000:l	; clear CSR
+0x8000e8:		movl	#0x846,a0	; first long in CDT
+0x8000ee:		cmpl	#0x45504a52,a0@+
+0x8000f4:		bnes	0x800124	; power up will jump
+
+; from here, must be software requested (or erroneous) reset
+
+0x8000f6:		tstb	0x854:l		; was this a panic?
+0x8000fc:		beqs	0x80010c
+0x8000fe:		movb	#0,0x852:l	; 0x852 = 0
+0x800106:		jmp	0x800148:l
+
+0x80010c:		addl	#8,a0
+0x800112:		movb	#1,a0@+		; 0x852 = 1
+0x800116:		movb	#0,a0@+		; 0x853 = 0
+0x80011a:		movb	#0,a0@		; 0x854 = 0
+0x80011e:		jmp	0x800148:l
+
+; Set up the CDT area (this must be a power-up reset)
+
+0x800124:		movl	#0x846,a0
+0x80012a:		movl	#0x45504a52,a0@+
+0x800130:		movl	#0,a0@+		; 0x84a = 0
+0x800136:		movl	#0,a0@+		; 0x84e = 0
+0x80013c:		movb	#2,a0@+		; 0x852 = 2 *** flags power up
+0x800140:		movb	#0,a0@+		; 0x853 = 0
+0x800144:		movb	#0,a0@		; 0x854 = 0
+
+; Initialize the Page Map, transparent, first 2Mb present, not accessed
+
+0x800148:		movw	#0x2000,d3
+0x80014c:		movl	#0x400000,a4
+0x800152:		movl	#0x1ff,d0
+0x800158:		movw	d3,a4@+
+0x80015a:		addqw	#1,d3
+0x80015c:		dbra	d0,0x800158
+
+; Second 2Mb mapped as transparent, not present
+
+0x800160:		bclr	#0xd,d3		; turn off page present bit
+0x800164:		movl	#0x1ff,d0
+0x80016a:		movw	d3,a4@+
+0x80016c:		addqw	#1,d3
+0x80016e:		dbra	d0,0x80016a
+
+; Turn on all LEDS (via GCR)
+
+0x800172:		movw	#0x3000,0x450000:l
+
+; set up the 8259
+;	0x13 = ICW1	-- Edge triggered, 4 byte calls, single 8259
+;	0x00 = ICW2	-- Vector base (T7-T3) = 00
+;	0x01 = ICW4	-- Non-buffered 8086 mode
+;	0xff = OCW1	-- all interrupt sources masked off
+
+0x80017a:		movw	#0x13,0xc90000:l
+0x800182:		movw	#0,0xc90002:l
+0x80018a:		movw	#1,0xc90002:l
+0x800192:		movw	#0xff,0xc90002:l
+
+; same treatment for 8259 on the expansion board (non-existant for us)
+
+0x80019a:		movw	#0x13,0xc70100:l
+0x8001a2:		movw	#0,0xc70102:l
+0x8001aa:		movw	#1,0xc70102:l
+0x8001b2:		movw	#0xff,0xc70102:l
+
+; ************************************************
+; loop to recalibrate disks -
+;  stays here forever, until some disk recalibrates
+;
+; d0 = 2 (FD), 1 (HD1), 0 (HD0)
+; ************************************************
+
+0x8001ba:		movw	#0x3700,0x450000:l	; set LED pattern
+
+0x8001c2:		clrl	d3		; flag if any disk worked
+0x8001c4:		movl	#2,d0		; loop counter ( 2, 1, 0 )
+0x8001ca:		movl	#0x2000,d1	; BASE address for control area
+0x8001d0:		movl	#0x3000,d2	; buffer address for i/o
+
+0x8001d6:		jsr	0x8003e4:l
+0x8001dc:		cmpl	#4,d7		; 4 is error status
+0x8001e2:		beqs	0x8001e6	; anything else is fine
+
+0x8001e4:		addql	#1,d3		; One worked !
+0x8001e6:		subql	#1,d0		; done ?
+0x8001e8:		bges	0x8001d6	; keep going
+
+0x8001ea:		tstl	d3		; loop till someone works
+0x8001ec:		beqs	0x8001ba
+
+; LED pattern "searching for dump area" (4 and 1 on)
+; This is not pertinent for power-up boot
+
+0x8001ee:		movw	#0x3500,0x450000:l
+0x8001f6:		cmpb	#2,0x852:l		; power up boot ?
+0x8001fe:		beqs	0x80027a		; Yes !
+
+; looking for dump area on disk (bypassed on power-up boot)
+
+0x800200:		movl	#0x66,a0	; offset for dump area pointer
+0x800206:		movl	#0x2000,d1	; BASE of control area pool
+0x80020c:		movl	#0x3000,d2	; buffer address
+0x800212:		jsr	0x800398:l	; get pointer to dump area
+0x800218:		tstl	d7		; find one ?
+0x80021a:		bnes	0x80027a	; no
+
+; found a dump area, 
+;	d4 = pointer to dump area on disk (in 1K block units)
+;	d5 = number of blocks in dump area (in 1K block units)
+;	d6 = device which had it
+; now see how much memory we have to dump
+
+0x80021c:		clrl	d2		; start counter
+0x80021e:		movl	d2,a6		; first 128K block base = 0 
+0x800220:		clrw	0x420000:l	; clear CSR
+0x800226:		movl	a6,a5
+0x800228:		addl	#0x1fffe,a5	; check last word in 128K block
+0x80022e:		movw	a5@+,d0		; read from it (data irrelevant)
+0x800230:		movw	0x410000:l,d0	; check GSR
+0x800236:		andw	#0xffff8000,d0	; Memory not present bit
+0x80023a:		beqs	0x80024e	; Zero means not present
+0x80023c:		cmpl	#0x10,d2	; End search at 2MB boundary
+0x800242:		beqs	0x80024e
+0x800244:		addql	#1,d2		; click counter
+0x800246:		addl	#0x20000,a6	; next 128K block
+0x80024c:		bras	0x800220
+
+; OK - found end of memory, now work with number of 512 byte sectors
+
+0x80024e:		lsll	#8,d2		; Size of memory to dump
+0x800250:		lsll	#1,d5		; Size of dump area
+0x800252:		cmpl	d2,d5		; compare
+0x800254:		blts	0x800258
+0x800256:		movl	d2,d5		; dump area is bigger
+0x800258:		tstl	d5		; are we dumping anything
+0x80025a:		beqs	0x80027a	; no (dump area size = 0 ?)
+0x80025c:		movl	d6,d7		; LED's	 get device code
+0x80025e:		orl	#0x3000,d7	; LED's (won't work in LSB)
+0x800264:		movw	d7,0x450000:l	; LED's
+0x80026a:		movl	#0,d3		; start with this address
+0x800270:		lsll	#1,d4		; to this address on disk
+0x800272:		clrl	d7
+0x800274:		jsr	0x80068a:l	; Call write routine
+
+; Regular sequence for power-up boot is here
+; Doing address test of memory
+
+0x80027a:		movl	#0x3000,d0	; start address test here
+0x800280:		movl	d0,a0
+0x800282:		movl	#0x80000,a6	; end test before here
+0x800288:		movl	d0,a0
+
+0x80028a:		movw	#0x3800,d4	; Bogus LED status
+0x80028e:		movw	d4,0x450000:l	; "Mem Addr Test Fail"
+
+0x800294:		movw	a0,a0@		; Write addr at addr
+0x800296:		movl	a0,d7
+0x800298:		cmpw	a0@+,d7		; Read it back
+0x80029a:		beqs	0x8002b0	; Better be equal
+
+0x80029c:		orl	#0x3800,d4	; Address Test Failed !!
+0x8002a2:		movl	d4,d7
+0x8002a4:		movw	d7,0x450000:l	; Post status to LED
+
+0x8002aa:		stop	#0x2700		; Stop Dead
+0x8002ae:		bras	0x8002aa	; Really Dead!
+
+0x8002b0:		cmpl	a0,a6
+0x8002b2:		bgts	0x800294	; Loop thru range
+
+; Second phase of address test, scan the range specified once again
+; make sure data written is still there, unmangled.
+
+0x8002b4:		movl	d0,a0		; start address from above
+0x8002b6:		movw	#0x3000,d4	; LED status --
+0x8002ba:		movw	d4,0x450000:l	; Address Test occurring
+
+0x8002c0:		movl	a0,d7
+0x8002c2:		cmpw	a0@+,d7
+0x8002c4:		bnes	0x80029c	; OOPS
+0x8002c6:		cmpl	a0,a6
+0x8002c8:		bgts	0x8002c0
+
+; Address Test done and successful
+; Move 128 byte CDT area to 0x6ff80 - 0x6ffff
+
+0x8002ca:		movl	#0x6ff80,a1	; move it to here
+0x8002d0:		movl	#0x846,a0	; from here
+0x8002d6:		movl	#0x7f,d0	; this many (N-1)
+0x8002dc:		movb	a0@+,a1@+	; byte by byte
+0x8002de:		dbra	d0,0x8002dc	; more
+
+; LED status "searching for loader"
+
+0x8002e2:		movw	#0x3600,0x450000:l
+
+0x8002ea:		movl	#0x5a,a0	; offset for loader pointer
+0x8002f0:		movl	#0x2000,d1	; BASE of control area pool
+0x8002f6:		movl	#0x3000,d2	; buffer address
+0x8002fc:		jsr	0x800398:l	; get pointer
+0x800302:		tstl	d7		; find one ?
+0x800304:		beqs	0x800310	; no
+
+; LED status: FAIL3 - cannot find loader
+; keep trying forever (maybe someone will put a disk in)
+
+0x800306:		movw	#0x3a00,0x450000:l	; LED's
+0x80030e:		bras	0x8002ea		; keep trying
+
+; LED status: Loading loader (4 and 3 on)
+
+0x800310:		movw	#0x3300,0x450000:l
+
+; Bravo! we have found a loadable image
+;	d4 = pointer to image on disk (in 1K block units)
+;	d5 = number of blocks in image (in 1K block units)
+;	d6 = device which had it
+
+0x800318:		movl	#0x70000,d3	; read image to here
+0x80031e:		lsll	#1,d4		; convert to 512 byte blocks
+0x800320:		lsll	#1,d5		; ditto - this many of them
+0x800322:		clrl	d7
+0x800324:		jsr	0x8006a2:l	; Read the loader
+0x80032a:		tstl	d7		; Did it work ?
+0x80032c:		bnes	0x8002e2	; NO
+
+; LED status: Entering loader (4, 1 and 0 on)
+
+0x80032e:		movw	#0x3400,0x450000:l
+0x800336:		clrw	0xc6002a:l	; Turn off floppy motor
+
+0x80033c:		jmp	0x70000:l	; <<< **** GO **** !!
+
+0x800342:		0x4028	@(		; ?junk
+0x800344:		0x2329	#)		; ?junk
+0x800346:		0x7072	pr		; ?junk
+0x800348:		0x6f6d	om		; ?junk
+0x80034a:		0x3232	22		; ?junk
+0x80034c:		0x0	
+0x80034e:		0x0
+
+; *********************************************************
+; Routine to read a disk "superblock" (first 1024 bytes on device)
+; Validates what it reads (magic "UQVQ" in first word, and checksum)
+; call with d6 = device (2=FD, 1=HD1, 0=HD0)
+; returns with d7=0 if valid
+; returns with d7=1 if anything goes wrong
+; called from 8003ac, 8005ac
+; *********************************************************
+
+0x800350:		movl	#2,d5		; Read this many 512 blocks
+0x800356:		movl	0x2004:l,d3	; To this buffer address
+0x80035c:		clrl	d4		; From this disk address
+0x80035e:		movl	#1,d7
+0x800364:		jsr	0x8006a2:l	; Read Em!
+0x80036a:		tstl	d7		; Did it work ???
+0x80036c:		bnes	0x800390	; NO! Argh!
+
+0x80036e:		movl	0x2004:l,a1	; Buffer address
+0x800374:		cmpl	#0x55515651,a1@	; 'UQVQ' must be first longword
+0x80037a:		bnes	0x800390	; It isn't -- Argh!
+
+0x80037c:		jsr	0x8003d4:l	; calculate checksum
+0x800382:		movl	#0,d7		; valid return if we have:
+0x800388:		cmpl	#-1,d5		; valid checksum ?
+0x80038e:		beqs	0x800396	; YES!
+
+0x800390:		movl	#1,d7		; error return
+0x800396:		rts
+
+; *********************************************************
+; Routine to search for pointer in a "superblock"
+;	Call with:
+;		a0 = offset to pointer info in superblock
+;		d1 = control area base (0x2000)
+;		d2 = buffer to use (0x3000)
+;	Returns:
+;		d4 = pointer to dump area on disk (in 1K block units)
+;		d5 = number of blocks in dump area (in 1K block units)
+;
+; called from 800212 -- to find dump area (with a0 = 0x66)
+; called from 8002fc -- to find loader    (with a0 = 0x5a)
+;  BLOCK +0x5a - 0x5d = first block (1K) on disk for loader
+;  BLOCK +0x5e - 0x5f = number of blocks (1K) on disk for loader
+;  BLOCK +0x66 - 0x69 = first block (1K) on disk for dump area
+;  BLOCK +0x70 - 0x71 = number of blocks (1K) on disk for dump area
+; also external entry point
+; *********************************************************
+
+0x800398:		movl	#2,d0		; begin loop with FD
+0x80039e:		addl	d2,a0
+0x8003a0:		jsr	0x8003f0:l
+0x8003a6:		tstl	d7		; did it work ?
+0x8003a8:		bnes	0x8003c8	; NO
+
+0x8003aa:		movl	d0,d6		; set device number
+0x8003ac:		jsr	0x800350:l	; read "superblock"
+0x8003b2:		tstl	d7		; did it work ?
+0x8003b4:		bnes	0x8003c8	; NO
+
+0x8003b6:		movl	a0@,d4		; start pointer on disk
+0x8003b8:		movw	a0@(4),d5
+0x8003bc:		andl	#0xffff,d5	; size of area on disk
+0x8003c2:		beqs	0x8003c8	; forget it if size==0
+
+0x8003c4:		clrl	d7		; Got one!
+0x8003c6:		rts			; Done
+
+0x8003c8:		subql	#1,d0		; loop on (FD=2, HD1=1, HD0=0)
+0x8003ca:		bges	0x8003a0
+
+0x8003cc:		movl	#2,d7		; Noone had desired pointer
+0x8003d2:		rts			; Give up
+
+; Calculate checksum on 1024 byte block
+; Call with:    a1 pointing to the buffer
+;		d5 returns the checksum
+
+0x8003d4:		clrl	d5		; initialize checksum
+0x8003d6:		movl	#0x100,d4	; this many 4 byte longwords
+0x8003dc:		addl	a1@+,d5		; add one
+0x8003de:		subql	#1,d4		; reduce count
+0x8003e0:		bnes	0x8003dc	; more
+0x8003e2:		rts			; done !
+
+; This routine is called to recalibrate the disks
+; Called from 8001d6, also external entry point
+
+0x8003e4:		moveml	d0-d6/a0-a7,sp@-
+0x8003e8:		movl	#1,d5
+0x8003ee:		bras	0x8003f6
+
+; Called from 8003a0; also external entry point
+
+0x8003f0:		moveml	d0-d6/a0-a7,sp@-
+0x8003f4:		clrl	d5
+
+; common code for both entry points above
+;
+;  0x2000-3 holds base address (4 bytes) for IO control area allocation
+;  0x2004-7 holds base address (4 bytes) for other gyrations
+;  0x2008-9 holds DMA word count on completion (noone ever uses it)
+;  0x200a-b holds error status on operation completion
+;  0x200c-d holds HD error flags (from WD1010)
+;  0x200e-11 holds count of errors (never initialized)
+
+0x8003f6:		clrw	0xc60036:l	; reset disk BIU
+0x8003fc:		movl	d0,d6
+0x8003fe:		movl	d1,0x2000:l	; only place this is set
+0x800404:		movl	d2,0x2004:l	; only place this is set
+
+0x80040a:		jsr	0x800438:l	; set a0 (according to d6)
+
+0x800410:		cmpl	#0,d0
+0x800416:		beq	0x800508	; HD 0
+0x80041a:		cmpl	#1,d0
+0x800420:		beq	0x80052a	; HD 1
+0x800424:		cmpl	#2,d0
+0x80042a:		beqs	0x800494	; floppy
+
+0x80042c:		movl	#3,d7		; Error - no such d0 allowed
+
+0x800432:		moveml	sp@+,d0-d6/a0-a7
+0x800436:		rts
+
+; *********************************************************
+; allocate an IO control area, based on the value in d6
+; 0x426 is 0x26 byte prefix, then 0x400 buffer (1k byte)
+; The base is fetched (long) from 0x2000
+;   BASE to BASE+0x0013 are used for other things (see above)
+;
+;	d6 = 0	a0 = BASE + 0x0014	d7 = 0
+;	d6 = 1	a0 = BASE + 0x043A	d7 = 0
+;	d6 = 2	a0 = BASE + 0x0860	d7 = 0
+;	d6 = any other value ---	d7 = 3
+; *********************************************************
+
+0x800438:		clrl	d7		; valid return (d7=0)
+0x80043a:		movl	0x2000:l,a0	; get base address for alloc
+0x800440:		addl	#0x14,a0	; ( +0x14 )
+0x800446:		cmpl	#0,d6
+0x80044c:		beqs	0x800470
+0x80044e:		addl	#0x426,a0	; ( +0x43A )
+0x800454:		cmpl	#1,d6
+0x80045a:		beqs	0x800470
+0x80045c:		addl	#0x426,a0	; floppy ( +0x860 )
+0x800462:		cmpl	#2,d6
+0x800468:		beqs	0x800470
+0x80046a:		movl	#3,d7		; Error (d7=3)
+0x800470:		rts
+
+; Set up the 8259
+;	0x13 = ICW1	-- Edge triggered, 4 byte calls, single 8259, need ICW4
+;	0x58 = ICW2	-- Vector base (T7-T3) = 58 - 5F  (Why?)
+;	0x03 = ICW4	-- Auto EOI, Non-buffered 8086 mode
+;	0xff = OCW1	-- all interrupt sources masked off
+
+0x800472:		movw	#0x13,0xc90000:l
+0x80047a:		movw	#0x58,0xc90002:l
+0x800482:		movw	#3,0xc90002:l
+0x80048a:		movw	#0xff,0xc90002:l
+0x800492:		rts
+
+; Entry point for Floppy Disk
+; only call is from 80042a above
+
+0x800494:		clrw	0xc60022:l	; FD reset off
+0x80049a:		movw	0xc60010:l,d0	; read FD status (silly)
+0x8004a0:		clrw	0xc60028:l	; FD motor on
+0x8004a6:		jsr	0x800472:l	; setup 8259 (all disabled)
+
+0x8004ac:		movb	#1,a0@(0x20)	; 0 = HD, 1 = FD
+0x8004b2:		movb	#2,a0@(0x21)	; 0 = HD0, 1 = HD1, 2 = FD
+
+; Sneaky way to hide a bit -- the following test looks at bit 0 in the
+; "slow comm port status register" -- When that bit is zero, a floppy
+; drive is connected to the floppy port (the hardware exists)
+
+0x8004b8:		movw	0xc30008:l,d7	; SCOMM status port
+0x8004be:		andw	#1,d7		; FD present bit
+0x8004c2:		bne	0x800560	; none there, return w/ d7=4
+
+; Aha - a floppy is out there
+
+0x8004c6:		tstl	d5		; d5=1 on recalibrate
+0x8004c8:		beq	0x80056a	; not a recal, bypass
+
+; Wait for floppy drive to come up ready
+
+0x8004cc:		movl	#0x29810,d1	; 170,000 decimal (timeout)
+0x8004d2:		movw	0xc60010:l,d0	; floppy status
+0x8004d8:		btst	#7,d0		; check Not-Ready bit
+0x8004dc:		beqs	0x8004e2	; Zero means Ready
+0x8004de:		subql	#1,d1		; count down (timeout)
+0x8004e0:		bgts	0x8004d2	; check status again
+
+; OK - the floppy is there and ready! (or the above loop timed out)
+; Recalibrate the thing.
+
+0x8004e2:		jsr	0x800b0c:l	; set density
+
+0x8004e8:		movw	#0,0xc60010:l	; Restore > floppy command
+0x8004f0:		jsr	0x800abe:l	; Wait for completion
+0x8004f6:		clrw	0xc60012:l	; write 0 to track register
+0x8004fc:		movl	d0,d7		; d0 holds status
+0x8004fe:		andl	#4,d7		; check TRACK0 bit
+0x800504:		beqs	0x800560	; error (TRACK0 should be 1)
+0x800506:		bras	0x80056a	; good - at Track 0
+
+; Entry point for Hard Disk 0
+; The SDH value of 0x20 = 512 byte sectors, drive 0, head 0
+; only call is from 800416 above
+
+0x800508:		clrw	0xc60026:l	; HD reset off
+0x80050e:		jsr	0x800472:l	; setup 8259 (all disabled)
+0x800514:		tstl	d5
+0x800516:		beqs	0x80056a
+0x800518:		movw	#0x20,0xc60002:l	; write precomp cyl
+0x800520:		movw	#0x20,0xc6000c:l	; SDH	(1/4)
+0x800528:		bras	0x800542
+
+; Entry point for Hard Disk 1
+; The SDH value of 0x28 = 512 byte sectors, drive 1, head 0
+; only call is from 800420 above
+
+0x80052a:		clrw	0xc60026:l	; HD reset off
+0x800530:		jsr	0x800472:l	; setup 8259 (all disabled)
+0x800536:		tstl	d5
+0x800538:		beqs	0x80056a
+0x80053a:		movw	#0x28,0xc6000c:l	; SDH	(2/4)
+
+; common code for both Hard Disks
+
+0x800542:		movb	d0,a0@(0x21)		; 0 = HD0, 1 - HD1
+0x800546:		movw	#0x10,0xc6000e:l	; HD restore cmd
+0x80054e:		movb	#0,a0@(0x20)		; HD = 0, FD = 1
+0x800554:		jsr	0x800a1a:l		; wait for completion
+0x80055a:		btst	#0,d0			; HD error bit
+0x80055e:		beqs	0x80056a		; OK if zero
+
+0x800560:		movl	#4,d7			; set error status
+0x800566:		bra	0x800432		; return
+
+; common code for everyone (FD and HD)
+; recalibrate ends up here if everything went well
+
+0x80056a:		movw	#4,a0@(0)
+0x800570:		movw	#4,a0@(2)
+0x800576:		movw	#4,a0@(4)
+0x80057c:		movw	#4,a0@(6)
+0x800582:		movw	#1,a0@(8)
+0x800588:		movw	#1,a0@(0xa)
+0x80058e:		movb	#1,a0@(0xe)
+0x800594:		clrw	a0@(0xc)
+
+0x800598:		cmpb	#1,a0@(0x20)	; 1 = FD
+0x80059e:		bnes	0x8005a6
+0x8005a0:		clrb	a0@(0xf)
+0x8005a4:		bras	0x8005ac
+0x8005a6:		movb	#2,a0@(0xf)
+
+0x8005ac:		jsr	0x800350:l	; read "superblock"
+0x8005b2:		tstl	d7		; did it work ?
+0x8005b4:		bne	0x800432	; NO
+
+0x8005b8:		movl	0x2004:l,a1
+0x8005be:		addl	#0xe,a1
+0x8005c4:		movw	a1@+,a0@(8)
+0x8005c8:		movw	a1@+,a0@(0xa)
+0x8005cc:		movw	a1@+,d0
+0x8005ce:		movw	d0,d1
+0x8005d0:		movw	d0,a0@(2)
+0x8005d4:		andw	#-2,d0
+0x8005d8:		movw	d0,a0@(0)
+0x8005dc:		movw	a1@+,d2
+0x8005de:		movw	d2,a0@(6)
+0x8005e2:		andl	#0xffff,d2
+0x8005e8:		divu	d1,d2
+0x8005ea:		mulu	d0,d2
+0x8005ec:		movw	d2,a0@(4)
+0x8005f0:		movb	a1@+,a0@(0xe)
+0x8005f4:		movb	a1@+,a0@(0xf)
+0x8005f8:		movw	a1@+,a0@(0x10)
+0x8005fc:		movl	0x2004:l,a1
+0x800602:		addl	#0x60,a1
+0x800608:		movl	a1@+,d4
+0x80060a:		movl	a1@,d2
+0x80060c:		beqs	0x800680
+0x80060e:		lsll	#1,d4
+0x800610:		movl	#2,d5
+0x800616:		movl	0x2004:l,d3
+0x80061c:		clrl	d7
+0x80061e:		jsr	0x8006a2:l	; Read
+0x800624:		tstl	d7
+0x800626:		bnes	0x800676
+
+0x800628:		movl	0x2004:l,a1	; address of buffer
+0x80062e:		jsr	0x8003d4:l	; calculate checksum
+0x800634:		cmpl	#-1,d5		; better be (-1)
+0x80063a:		bnes	0x800676
+
+0x80063c:		movl	#0x7f,d4
+0x800642:		movl	0x2004:l,a1
+0x800648:		addl	#8,a1
+0x80064e:		lea	a0@(0x26),a2	; use the rest as a buffer
+0x800652:		movw	a1@+,d3
+0x800654:		movw	d3,a2@+
+0x800656:		clrl	d0
+0x800658:		movw	a1@+,d0
+0x80065a:		orw	d0,d3
+0x80065c:		tstw	d3
+0x80065e:		beqs	0x800680
+0x800660:		divu	a0@(2),d0
+0x800664:		movw	d0,a2@+
+0x800666:		swap	d0
+0x800668:		movw	d0,a2@+
+0x80066a:		movw	a1@+,a2@+
+0x80066c:		addql	#2,a1
+0x80066e:		addqw	#1,a0@(0xc)
+0x800672:		subql	#1,d4
+0x800674:		bgts	0x800652
+
+0x800676:		movl	#5,d7		; return with d7=5
+0x80067c:		bra	0x800432
+
+0x800680:		movl	#0,d7		; return with d7=0
+0x800686:		bra	0x800432
+
+; ************************************************
+; ** General IO routines -- Write/Format/Read  ***
+; **
+; ** d3 = memory address for i/o
+; ** d4 = disk address (in # of 512 byte sectors)
+; ** d5 = # of 512 byte sectors to move
+; ** d6 = device (2=FD, 1=HD1, 0=HD0)
+; ** d7 = 0 or 1
+; ************************************************
+;
+
+; Write - Called from 800274 (for memory dump)
+;	also External entry
+
+0x80068a:		moveml	d0-d6/a0-a7,sp@-
+0x80068e:		movl	#1,d2		; 1 = Write
+0x800694:		bras	0x8006ac
+
+; Format - External calls only
+
+0x800696:		moveml	d0-d6/a0-a7,sp@-
+0x80069a:		movl	#2,d2		; 2 = Format
+0x8006a0:		bras	0x8006ac
+
+; Read - Called from 800324 (to read loader),
+;	 Called from 800364 (to read "superblock" for loader/dump pointers),
+;	 Called from 80061e (to read "superblock" for disk params)
+;	 also External entry
+
+0x8006a2:		moveml	d0-d6/a0-a7,sp@-
+0x8006a6:		movl	#0,d2		; 0 = Read
+
+; common code for the 3 entry points above
+
+0x8006ac:		movl	d7,d0		; copy d7 to d0 (to save it)
+
+0x8006ae:		jsr	0x800438:l	; get a0 pointer (based on d6)
+0x8006b4:		tstl	d7		; only non-zero if d6 invalid
+0x8006b6:		bne	0x80042c	; invalid d6 (return w/d7=3)
+
+0x8006ba:		clrw	0xc60030:l	; disable disk DMA
+0x8006c0:		clrw	0xc60036:l	; reset disk BIU
+
+0x8006c6:		movb	d0,a0@(0x25)	; low byte of d7 (0 or 1)
+0x8006ca:		movb	d2,a0@(0x24)	; 0=Read, 1=Write, 2=Format
+0x8006ce:		movw	#0xa,a0@(0x22)	; 10 retries
+0x8006d4:		lsrl	#1,d3
+0x8006d6:		movl	d3,a0@(0x12)
+0x8006da:		movw	a0@(4),d0
+0x8006de:		movw	a0@(0),d3
+0x8006e2:		tstb	a0@(0x25)
+0x8006e6:		beqs	0x8006f0
+0x8006e8:		movw	a0@(6),d0
+0x8006ec:		movw	a0@(2),d3
+0x8006f0:		divu	d0,d4
+0x8006f2:		movw	d4,a0@(0x16)
+0x8006f6:		swap	d4
+0x8006f8:		andl	#0xffff,d4
+0x8006fe:		divu	d3,d4
+0x800700:		movw	d4,a0@(0x18)
+0x800704:		swap	d4
+0x800706:		movw	d4,a0@(0x1a)
+0x80070a:		movw	d5,a0@(0x1c)
+0x80070e:		movw	d5,a0@(0x1e)
+
+; entered from 8008c2, 800a16, 800c24
+
+0x800712:		tstw	a0@(0x1c)
+0x800716:		ble	0x800680
+0x80071a:		cmpb	#1,a0@(0x20)	; 1 = FD
+0x800720:		bnes	0x800736
+0x800722:		cmpb	#2,a0@(0x24)	; 2 = Format
+0x800728:		beq	0x8007d6
+0x80072c:		movw	#1,a0@(0x1e)
+0x800732:		bra	0x8007d6
+0x800736:		cmpb	#2,a0@(0x24)	; 2 = Format
+0x80073c:		bge	0x8007d6
+0x800740:		lea	a0@(0x26),a1	; use the rest as a buffer
+0x800744:		movw	a0@(0xc),d0
+0x800748:		andl	#0xffff,d0
+0x80074e:		movw	a0@(0x1a),d1
+0x800752:		andl	#0xffff,d1
+0x800758:		addw	a0@(0x1c),d1
+0x80075c:		bras	0x800764
+0x80075e:		addql	#2,a1
+0x800760:		addql	#2,a1
+0x800762:		addql	#2,a1
+0x800764:		subql	#1,d0
+0x800766:		blts	0x8007ac
+0x800768:		movw	a1@+,d2
+0x80076a:		cmpw	a0@(0x16),d2
+0x80076e:		bnes	0x80075e
+0x800770:		movw	a1@+,d2
+0x800772:		cmpw	a0@(0x18),d2
+0x800776:		bnes	0x800760
+0x800778:		movw	a1@+,d2
+0x80077a:		cmpw	a0@(0x1a),d2
+0x80077e:		blts	0x800762
+0x800780:		cmpw	d1,d2
+0x800782:		bges	0x800762
+0x800784:		subw	a0@(0x1a),d2
+0x800788:		bnes	0x8007d2
+0x80078a:		movw	#1,a0@(0x1e)
+0x800790:		clrl	d3
+0x800792:		movw	a1@,d3
+0x800794:		divu	a0@(0xa),d3
+0x800798:		clrl	d4
+0x80079a:		movw	d3,d4
+0x80079c:		swap	d3
+0x80079e:		andl	#0xffff,d3
+0x8007a4:		clrl	d5
+0x8007a6:		movw	a0@(0),d5
+0x8007aa:		bras	0x8007e8
+0x8007ac:		movw	a0@(0x1a),d0
+0x8007b0:		andl	#0xffff,d0
+0x8007b6:		addw	a0@(0x1c),d0
+0x8007ba:		movw	a0@(0),d5
+0x8007be:		tstb	a0@(0x25)
+0x8007c2:		beqs	0x8007c8
+0x8007c4:		movw	a0@(2),d5
+0x8007c8:		cmpw	d5,d0
+0x8007ca:		bles	0x8007d6
+0x8007cc:		movw	d5,d2
+0x8007ce:		subw	a0@(0x1a),d2
+0x8007d2:		movw	d2,a0@(0x1e)
+
+0x8007d6:		clrl	d5
+0x8007d8:		clrl	d4
+0x8007da:		clrl	d3
+0x8007dc:		movw	a0@(0x16),d4
+0x8007e0:		movw	a0@(0x18),d3
+0x8007e4:		movw	a0@(0x1a),d5
+0x8007e8:		movl	a0@(0x12),d1
+0x8007ec:		movw	a0@(0x1e),d0
+0x8007f0:		andl	#0xffff,d0
+0x8007f6:		cmpb	#2,a0@(0x24)	; 2 = Format
+0x8007fc:		bnes	0x80080c
+0x8007fe:		lsrl	#1,d0
+0x800800:		cmpb	#0,a0@(0x20)	; 0 = HD
+0x800806:		bnes	0x80080e
+0x800808:		addql	#2,d1
+0x80080a:		bras	0x80080e
+0x80080c:		lsll	#8,d0
+0x80080e:		negl	d0
+
+; set up for disk DMA, both floppy and hard disk share the same channel
+
+0x800810:		movw	d0,0xc80000:l		; DMA 16 bit word count
+0x800816:		movw	d1,0xc80002:l		; DMA low 16 addr bits
+0x80081c:		swap	d1			; 16 bit <= =>
+
+0x80081e:		cmpb	#0,a0@(0x24)		; 0=Read
+0x800824:		bnes	0x80082e		; 1=Write 2 = Format
+0x800826:		movw	d1,0xc80008:l		; DMA high addr - Read
+0x80082c:		bras	0x800834
+0x80082e:		movw	d1,0xc80006:l		; DMA high addr - Write
+0x800834:		cmpb	#1,a0@(0x20)		; 1 = FD
+0x80083a:		beq	0x800b3a		; go to FD routine
+
+0x80083e:		clrw	0xc6002c:l		; HD reset off
+0x800844:		jsr	0x8008ee:l
+
+0x80084a:		cmpb	#0,a0@(0x24)		; 0 = Read
+0x800850:		bnes	0x80085c
+0x800852:		movw	#0x2c,0xc6000e:l	; HD read multi-sectors
+0x80085a:		bras	0x800876
+0x80085c:		cmpb	#2,a0@(0x24)		; 2 = Format
+0x800862:		bnes	0x80086e		; 1 = Write
+0x800864:		movw	#0x50,0xc6000e:l	; HD write format
+0x80086c:		bras	0x800876
+0x80086e:		movw	#0x34,0xc6000e:l	; HD write multi-sectors
+0x800876:		jsr	0x800a1a:l		; wait for completion
+0x80087c:		movl	d0,d7			; check status
+0x80087e:		andl	#0xa3,d7
+0x800884:		beq	0x8009c8		; good!
+
+; here on hard disk IO error
+
+0x800888:		tstb	a0@(0x25)	; are we allowing retries
+0x80088c:		bnes	0x8008c6	; No
+0x80088e:		cmpw	#5,a0@(0x22)	; retry count ( 10 initially )
+0x800894:		bnes	0x8008b6
+0x800896:		clrw	0xc60026:l	; HD reset off
+0x80089c:		clrl	d3
+0x80089e:		clrl	d4
+0x8008a0:		clrl	d5
+0x8008a2:		jsr	0x80097a:l
+0x8008a8:		jsr	0x8009a4:l
+0x8008ae:		btst	#0,d0		; any error in HD status
+0x8008b2:		bne	0x800560	; trouble
+
+0x8008b6:		addql	#1,0x200e:l	; count the retries
+0x8008bc:		subw	#1,a0@(0x22)	; --retry
+0x8008c2:		bgt	0x800712	; Do it again
+
+; too many retries - return with error status
+; FD and HD use this, but some bits only make sense for HD
+
+0x8008c6:		movl	#6,d7		; start building a status
+0x8008cc:		addb	a0@(0x24),d7	; 0=Read, 1=Write, 2=Format
+0x8008d0:		andl	#0xff,d0	; mask completion status
+0x8008d6:		swap	d0		; swap 16 bit halves
+0x8008d8:		orl	d0,d7		; add that on
+0x8008da:		movw	0x200c:l,d0	; error flags from WD1010
+0x8008e0:		andl	#0xff,d0	; just a byte
+0x8008e6:		rorl	#8,d0		; move left 8 bits
+0x8008e8:		orl	d0,d7		; and tack it on
+0x8008ea:		bra	0x800432	; return with fancy code in d7
+
+; called from 800844, 80097a, 8009aa
+; HD1 needs write precomp set, HD0 doesn't (but will inherit HD1 settings)
+
+0x8008ee:		cmpb	#1,a0@(0x21)		; 0 = HD0, 1 = HD1
+0x8008f4:		beqs	0x8008fe
+0x8008f6:		movw	#0x20,0xc60002:l	; HD Write precomp cyl
+
+0x8008fe:		movw	a0@(0x1e),d0
+0x800902:		cmpb	#2,a0@(0x24)		; 2 = format
+0x800908:		bnes	0x800914
+0x80090a:		movl	a0@(0x12),d0		; Formatting
+0x80090e:		lsll	#1,d0
+0x800910:		movl	d0,a1
+0x800912:		movw	a1@+,d0
+
+0x800914:		movw	d0,0xc60004:l		; HD sector count
+0x80091a:		clrl	d1
+0x80091c:		movb	a0@(0xe),d0
+0x800920:		andl	#4,d0
+0x800926:		beqs	0x80093a
+0x800928:		bset	#5,d1
+0x80092c:		cmpw	#7,d3
+0x800930:		bles	0x80093a
+0x800932:		bset	#6,d1
+0x800936:		addw	#0x20,d5
+0x80093a:		cmpb	#2,a0@(0x24)	; 2 = Format
+0x800940:		bnes	0x800944
+0x800942:		movw	a1@,d5
+0x800944:		movw	d5,0xc60006:l	; HD sector number
+0x80094a:		movw	d4,0xc60008:l	; HD cyl number (low)
+0x800950:		lsrl	#8,d4
+0x800952:		andl	#0xff,d4
+0x800958:		orw	d4,d1
+0x80095a:		movw	d1,0xc6000a:l	; HD cyl number (high)
+
+0x800960:		andl	#7,d3		; 3 bits
+0x800966:		movl	d6,d0
+0x800968:		lsll	#3,d0		; drive (0 or 1)
+0x80096a:		orl	d0,d3
+0x80096c:		orl	#0x20,d3	; 512 byte sectors always
+0x800972:		movw	d3,0xc6000c:l	; SDH	(3/4)
+0x800978:		rts
+
+0x80097a:		jsr	0x8008ee:l
+0x800980:		clrl	d0
+0x800982:		movb	a0@(0xf),d0
+0x800986:		addw	#0x70,d0	; HD seek command
+0x80098a:		movw	d0,0xc6000e:l
+0x800990:		jsr	0x800a1a:l	; wait for completion
+0x800996:		movw	0xc6000e:l,d0	; HD status
+0x80099c:		btst	#1,d0		; Cmd in Progress
+0x8009a0:		bnes	0x800996	; Poll till done
+0x8009a2:		rts
+
+0x8009a4:		clrl	d3
+0x8009a6:		clrl	d4
+0x8009a8:		clrl	d5
+0x8009aa:		jsr	0x8008ee:l
+0x8009b0:		clrl	d0
+0x8009b2:		movb	a0@(0xf),d0
+0x8009b6:		addw	#0x10,d0	; HD restore command
+0x8009ba:		movw	d0,0xc6000e:l
+0x8009c0:		jsr	0x800a1a:l	; wait for completion
+0x8009c6:		rts
+
+; successful hard disk AND floppy disk IO comes here:
+;  from 800bda (floppy) and 800884 (hard)
+
+0x8009c8:		movw	a0@(0x1e),d0
+0x8009cc:		subw	d0,a0@(0x1c)
+0x8009d0:		movw	d0,d1
+0x8009d2:		addw	a0@(0x1a),d1
+0x8009d6:		clrl	d2
+0x8009d8:		movw	a0@(0),d3
+0x8009dc:		tstb	a0@(0x25)
+0x8009e0:		beqs	0x8009e6
+0x8009e2:		movw	a0@(2),d3
+0x8009e6:		cmpw	d3,d1
+0x8009e8:		blts	0x8009f2
+0x8009ea:		movl	#1,d2
+0x8009f0:		clrl	d1
+0x8009f2:		movw	d1,a0@(0x1a)
+0x8009f6:		addw	a0@(0x18),d2
+0x8009fa:		cmpw	a0@(0xa),d2
+0x8009fe:		blts	0x800a06
+0x800a00:		clrl	d2
+0x800a02:		addqw	#1,a0@(0x16)
+0x800a06:		movw	d2,a0@(0x18)
+0x800a0a:		lsll	#8,d0
+0x800a0c:		addl	d0,a0@(0x12)
+0x800a10:		movw	a0@(0x1c),a0@(0x1e)
+0x800a16:		bra	0x800712
+
+; ************************************************
+; ** Routine to wait for HD command completion. **
+; ************************************************
+;
+; Activate 8259 for HD interrupts
+;	0x9f = OCW1	-- Unmask level 6 and 5 (Disk error, and HD EOXfer)
+;	0x0e = OCW3	-- Poll IR register on next read
+
+0x800a1a:		movw	#0x9f,0xc90002:l
+0x800a22:		movl	#0x927c0,d1	; 600,000 decimal (timeout)
+0x800a28:		movw	#0xe,0xc90000:l
+0x800a30:		subql	#1,d1
+0x800a32:		bnes	0x800a50
+
+0x800a34:		movw	0xc6000e:l,d0	; timeout
+0x800a3a:		movw	#-0x1111,0x200a:l	; set status
+0x800a42:		clrw	0xc60030:l	; disable disk DMA
+0x800a48:		clrw	0xc60036:l	; reset disk BIU
+0x800a4e:		bras	0x800a96
+
+; read 8259 IR register, 0x85 = interrupt at level 05 (overflow or underrun)
+;                        0x86 = interrupt at level 06 (HD end of Xfer)
+
+0x800a50:		movw	0xc90000:l,d0
+0x800a56:		cmpb	#0x85,d0
+0x800a5a:		bnes	0x800a76
+
+; here with overflow/underrun
+
+0x800a5c:		clrw	0xc60024:l	; HD reset on
+0x800a62:		rorl	#8,d1
+0x800a64:		roll	#8,d1
+0x800a66:		clrw	0xc60026:l
+0x800a6c:		movw	#-0x1101,0x200a:l  ; set status (home-made)
+0x800a74:		bras	0x800a42
+
+0x800a76:		cmpb	#0x86,d0
+0x800a7a:		bnes	0x800a28	; keep on going
+
+; here with successful End of transfer
+
+0x800a7c:		clrw	0xc60030:l		; disable disk DMA
+0x800a82:		movw	0xc6000e:l,0x200a:l	; save status (WD1010)
+0x800a8c:		movw	0xc60002:l,0x200c:l	; save err flags (1010)
+
+; Reset 8259 
+;	0xff = OCW1	-- Mask all interrupt levels
+; HD_SDH = 0x18 sets 256 byte sectors, drive 4, head 0 (Impossible drive)
+
+0x800a96:		movw	#0xff,0xc90002:l
+
+0x800a9e:		clrw	0xc60036:l		; reset disk BIU
+0x800aa4:		movw	#0x18,0xc6000c:l	; SDH	(4/4)
+
+; The DMA word count here is stored, never referenced anywhere
+
+0x800aac:		movw	0xc80000:l,0x2008:l	; DMA word count (disk)
+0x800ab6:		movw	0x200a:l,d0		; fetch status
+0x800abc:		rts
+
+; ************************************************
+; ** Routine to wait for FD command completion. **
+; ************************************************
+;
+; Activate 8259 for FD interrupts
+;	0x7f = OCW1	-- Unmask level 7 (FD EOXfer)
+;	0x0e = OCW3	-- Poll IR register on next read
+
+0x800abe:		movw	#0x7f,0xc90002:l
+0x800ac6:		movl	#0x61a80,d1	; 400,000 decimal (timeout)
+0x800acc:		movw	#0xe,0xc90000:l
+0x800ad4:		subql	#1,d1
+0x800ad6:		bnes	0x800aee	
+
+0x800ad8:		movw	#-0x1107,0x200a:l	; timed out! set status
+0x800ae0:		clrw	0xc60030:l	; disable disk DMA
+0x800ae6:		clrw	0xc60036:l	; reset disk BIU
+0x800aec:		bras	0x800a96	; remask interrupts, return
+
+; read 8259 IR register, 0x87 = interrupt at level 07
+
+0x800aee:		movw	0xc90000:l,d0	; poll the 8259
+0x800af4:		cmpb	#0x87,d0	; are we done?
+0x800af8:		bnes	0x800acc	; no, poll some more
+0x800afa:		clrw	0xc60030:l	; Done! disable disk DMA
+0x800b00:		movw	0xc60010:l,0x200a:l	; save status (2797)
+0x800b0a:		bras	0x800a96	; remask interrupts, return
+
+; ************************************************
+; ** Routine to set floppy density
+; ** a0@(0x16) is current cyliner number
+; ** a0@(0xe) are density flags as follows:
+;	------00	    -- single density
+;	------01	    -- double density
+;	------1x and cyl==0 -- single density
+;	------1x and cyl!=0 -- double density
+; ************************************************
+
+0x800b0c:		movb	a0@(0xe),d0	; check flags
+0x800b10:		andl	#2,d0		; cylinder number stuff ?
+0x800b16:		beqs	0x800b26	; NO
+0x800b18:		tstw	a0@(0x16)	; cyliner zero
+0x800b1c:		bnes	0x800b32	; NO
+0x800b1e:		clrw	0xc60032:l	; set single density
+0x800b24:		rts
+
+0x800b26:		movb	a0@(0xe),d0	; check flags
+0x800b2a:		andl	#1,d0		; always double density ?
+0x800b30:		beqs	0x800b1e	; NO - then always single
+0x800b32:		clrw	0xc60034:l	; set double density
+0x800b38:		rts
+
+; ************************************************
+; ** common routine for floppy disk IO  **********
+; ************************************************
+;
+; first thing is to seek to the correct track
+
+0x800b3a:		movw	d4,0xc60016:l	; write track # to data reg.
+0x800b40:		cmpb	0xc60013:l,d4	; compare with track reg.
+0x800b46:		beqs	0x800b90	; same - no need to seek
+0x800b48:		jsr	0x800b0c:l	; set density
+
+0x800b4e:		cmpb	#2,a0@(0x24)	 ; 2 = Format
+0x800b54:		bnes	0x800b60	 ; not formatting
+0x800b56:		movw	#0x10,0xc60010:l ; Formatting - just seek
+0x800b5e:		bras	0x800b68	 ; otherwise:
+0x800b60:		movw	#0x14,0xc60010:l ; seek with verify
+
+0x800b68:		jsr	0x800abe:l	; wait for command complete
+0x800b6e:		movl	d0,d7		; get status
+0x800b70:		andl	#0x98,d7	; Not Rdy | Seek Err | CRC
+0x800b76:		beqs	0x800b90	; Good! none of these bits set
+
+; HD seek error
+
+0x800b78:		tstb	a0@(0x25)	; allowing retries
+0x800b7c:		bnes	0x800b8c	; No
+0x800b7e:		addql	#1,0x200e:l	; count the retries 
+0x800b84:		subw	#1,a0@(0x22)	; --retry
+0x800b8a:		bgts	0x800b3a	; try again
+0x800b8c:		bra	0x8008c6	; build error status, return
+
+; Here after successful seek to desired track
+; set up and start the desired command.
+
+0x800b90:		clrw	0xc6002e:l	; enable floppy DMA
+0x800b96:		addqw	#1,d5		; add 1 to sector number
+0x800b98:		movw	d5,0xc60014:l	; write it to sector reg
+0x800b9e:		jsr	0x800b0c:l	; set density
+0x800ba4:		lslw	#1,d3		; side select bit
+
+0x800ba6:		cmpb	#0,a0@(0x24)	; 0 = Read
+0x800bac:		bnes	0x800bb4
+0x800bae:		addw	#0x88,d3	; read single sector
+0x800bb2:		bras	0x800bc6
+
+0x800bb4:		cmpb	#2,a0@(0x24)	; 2 = Format ( 1 = Write )
+0x800bba:		bnes	0x800bc2
+0x800bbc:		addw	#0xf0,d3	; format (write track)
+0x800bc0:		bras	0x800bc6
+
+0x800bc2:		addw	#0xa8,d3	; write single sector
+
+0x800bc6:		movw	d3,0xc60010:l	; start the command !
+0x800bcc:		jsr	0x800abe:l	; wait for completion
+0x800bd2:		movl	d0,d7		; get status
+0x800bd4:		andl	#0xdc,d7	; mask for error bit (2797FDC)
+0x800bda:		beq	0x8009c8	; good! none of these set
+
+; Floppy disk IO error
+
+0x800bde:		tstb	a0@(0x25)	; allowing retries
+0x800be2:		bnes	0x800c28	; No
+0x800be4:		cmpw	#5,a0@(0x22)	; check retry count
+0x800bea:		bnes	0x800c18	; do it again
+
+0x800bec:		clrw	0xc60022:l	; FD reset off
+0x800bf2:		jsr	0x800b0c:l	; set density
+0x800bf8:		movw	#0,0xc60010:l	; restore command
+
+;; Some funny business here, I believe the ROM just lost a bit --
+;; The following 3 words:
+;; 0x800c00:		4eb1 0080 0abe
+;; Disassemble as this junk: (and grab a fourth word)
+;; 0x800c00:		jsr	a1@(-0x80,d0:w)	; (8 bytes, nonsense)
+;; If we set just one bit: 
+;; 0x800c00:		4eb9 0080 0abe
+;; This disassembles as:
+;; 0x800c00:		jsr	0x800abe:l
+;; And the following instruction as:
+;; 0x800c06:		4279 00c6 0012
+;; 0x800c06:		clrw	0xc60012:l
+;; Which makes sense, so I reproduce this code below:
+
+0x800c00:		jsr	0x800abe:l	; wait for command completion
+0x800c06:		clrw	0xc60012:l	; write 0 to track register
+0x800c0c:		movl	d0,d7		; look at status
+0x800c0e:		andl	#4,d7		; Expect 1 here (Track 0)
+0x800c14:		beq	0x800560	; trouble
+
+0x800c18:		addql	#1,0x200e:l	; count the retries
+0x800c1e:		subw	#1,a0@(0x22)	; --retry
+0x800c24:		bgt	0x800712	; do it again
+0x800c28:		bra	0x8008c6	; build error status, return
+
+/* The End */

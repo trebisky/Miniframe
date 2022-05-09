@@ -1,22 +1,25 @@
-Callan "Unistar" multibus machine
+Convergent Technologies Miniframe
 
-This is a multibus based computer based on a
-Pacific Microsystems PM68K cpu board.
+The Miniframe is a 68010 based machine that ran a version of unix
+called "CTIX".  It is a close relation to the ATT Unix PC with many
+similarities.  (Both were made by Convergent Technologies.
 
-This project is about analyzing the bootroms and
-augmenting them with the ability to support a
-remote "stub" protocol.
+<p>
+I never had CTIX media of any kind (tapes or floppies or hard drive).
+I had a couple of boards, one of which I managed to repair, and I did
+a lot of reverse engineering.  I also was given a set of detailed manuals
+with schematics and programming information.  I worked from these and
+developed my own code, but never managed a full unix port.
 
--- Roms - read and disassemble boot roms
--- toS - C program to generate S records
--- Srecord - a tool to download S records
--- First - a first tiny test to download and run
--- libgcc - vital routines from libgcc in assembler
--- printf - set up a C development framework
--- ram - ram diagnostic
--- hd1 - first attempts at driver for the hard drive controller
--- cwc-firmware - analysis of firmware in the hard drive controller
--- hd2 - driver for the hard drive controller after I get good RAM card
--- uart - improved serial IO for interaction with python script
--- hd3 - hopefully the final hd driver and contents extraction
+<p>
+I did all this work in 1989 to 1991.  Only now, over 30 years later,
+I am putting it up here for some Miniframe enthusiasts to try to
+make use of.  At that time I was using a Sun workstation to do my
+work, with sun compilers running on a sun3, but also using a
+sparstation for some things.
+
+<p>
+Here are the projects:
+
+Roms -- boot rom files and disassembly
 
