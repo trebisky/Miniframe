@@ -5,8 +5,10 @@ mkboot:	mkboot.c
 
 test:	dmon.img
 
-dmon.img:	dmon
+dmon.img:	dmon FORCE
 	./mkboot dmon dmon.img
+
+FORCE:
 
 get:
 	cp ../Diskmon/dmon .

@@ -55,6 +55,10 @@ struct exec {
 
 int ofd;	/* output disk file */
 
+/* This is by no means a super block for a filesystem,
+ * It is the 1024 byte header the boot roms expect on
+ * a floppy (or hard drive) they will boot from.
+ */
 struct ctsup {
 	int4	magic;		/* word 1-2 of 512 */
 	short	fill0[6];	/* words 3-8 */
@@ -120,18 +124,6 @@ lfix( int4 inlong )
 #endif
 }
 
-#ifdef notdef
-int4
-lsum ( int4 *buf, int nlong)
-{
-	unsigned int sum = 0;
-
-	while ( nlong-- )
-		sum += lfix(*buf++);
-	return ( sum );
-}
-#endif
-
 int4
 lsum ( char *buf, int nlong)
 {
@@ -151,6 +143,7 @@ zfill ( char *buf, int nby)
 		*buf++ = 0;
 }
 
+#ifdef notdef
 void
 bswap ( char *buf, int n )
 {
@@ -163,6 +156,7 @@ bswap ( char *buf, int n )
 		buf += 2;
 	}
 }
+#endif
 
 void
 error ( char *s )
@@ -177,7 +171,9 @@ error ( char *s )
 int
 dwrite ( char *buf )
 {
-	bswap(buf,KSIZE);
+	// I see no reason for this.
+	// bswap(buf,KSIZE);
+
 	if ( write ( ofd, buf, KSIZE ) != KSIZE )
 		error("Write error");
 }
@@ -232,9 +228,11 @@ main ( int argc, char ** argv )
 	printf("data size: %ld\n",lfix(header.data));
 	printf("text + data = %ld\n",lfix(header.text)+lfix(header.data));
 	printf("bss size: %ld\n",lfix(header.bss));	/* just info now */
+
 	imsize = lfix(header.text)+lfix(header.data);
 	imblocks = (imsize+KSIZE-1) / KSIZE;
 	printf("image uses %d 1K blocks\n",imblocks);
+
 #ifdef DEBUG
 	imblocks = 40;
 #endif
@@ -286,6 +284,7 @@ main ( int argc, char ** argv )
 		}
 		dwrite ( imbuf );
 	}
+
 	/* write a complete last block */
 	zfill(imbuf,KSIZE);
 	if ( (num = read(infd,imbuf,KSIZE)) <= 0 )
